@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>Epic SmartObject Builder — visual, node-based</title>
-  <meta name="description" content="A visual, node-based builder for Epic SmartPhrases and SmartObjects. Stack blocks like coding modules, then copy the assembled body into Epic. Built by Paul Peck.">
+  <title>SmartPhrase Builder</title>
+  <meta name="description" content="Build an Epic SmartPhrase one block at a time, then copy it into Epic for testing.">
   <style>
     :root {
       color-scheme: light;
@@ -176,29 +176,187 @@
       .smarttool-definition-strip, .smartphrase-filter-grid, .smartbank-count-strip, .smarttool-help { grid-template-columns: 1fr; }
     }
   </style>
+  <style id="phase-one-theme">
+    :root {
+      --ink: #172033;
+      --muted: #596579;
+      --line: #d9e0ea;
+      --paper: #ffffff;
+      --soft: #f4f7fb;
+      --navy: #172033;
+      --blue: #0b5bd3;
+      --blue-dark: #0847a6;
+      --blue-soft: #eef5ff;
+      --teal: #0b6b55;
+      --teal-soft: #eaf7f2;
+      --warning: #8a5c00;
+      --warning-bg: #fff7df;
+      --danger: #b42318;
+      --danger-bg: #fff1f0;
+      --shadow: 0 12px 34px rgba(23, 32, 51, .07);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    html { background: var(--soft); }
+    body { background: var(--soft); color: var(--ink); font-size: 1rem; line-height: 1.5; }
+    button, input, select, textarea { font: inherit; }
+    button { min-height: 44px; }
+    button, summary, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid rgba(11, 91, 211, .32); outline-offset: 2px; }
+
+    .app-header { position: relative; padding: 0; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.96); color: var(--ink); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; width: min(1440px, 100%); margin: 0 auto; padding: 14px 24px; }
+    .product-lockup { display: flex; gap: 12px; align-items: center; }
+    .app-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 12px; background: var(--blue); color: #fff; font-weight: 800; box-shadow: 0 6px 16px rgba(11,91,211,.2); }
+    .app-header h1 { color: var(--ink); font-size: 1.08rem; letter-spacing: -.015em; }
+    .app-header p { margin: 1px 0 0; color: var(--muted); font-size: .875rem; }
+    .offline-badge { border: 1px solid #bad1f4; border-radius: 999px; background: var(--blue-soft); color: var(--blue-dark); padding: 6px 10px; font-size: .8rem; font-weight: 750; }
+    main { width: min(1440px, 100%); margin: 0 auto; padding: 20px 24px; }
+    .app-footer { width: min(1440px, 100%); margin: 4px auto 24px; padding: 16px 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+    .app-footer p { margin: 4px 0; }
+    .app-footer a { color: var(--blue-dark); }
+
+    .smarttool-builder { gap: 14px; }
+    .smarttool-safety-callout { display: flex; gap: 8px 14px; align-items: baseline; border: 1px solid #cddcf3; border-left: 4px solid var(--blue); border-radius: 12px; background: var(--blue-soft); padding: 10px 14px; }
+    .smarttool-safety-callout strong { flex: 0 0 auto; color: var(--blue-dark); font-size: .88rem; }
+    .smarttool-safety-callout p { margin: 0; color: #42536d; font-size: .875rem; line-height: 1.45; }
+    .smarttool-layout { grid-template-columns: minmax(250px,.74fr) minmax(430px,1.35fr) minmax(310px,.88fr); gap: 14px; }
+    .smarttool-library, .smarttool-canvas-column, .smarttool-output-column { border: 1px solid var(--line); border-radius: 18px; background: var(--paper); padding: 16px; box-shadow: var(--shadow); }
+    .smarttool-library > header, .smarttool-canvas-column > header, .smarttool-output-column > header { margin-bottom: 14px; }
+    .smarttool-library h3, .smarttool-canvas-column h3, .smarttool-output-column h3 { color: var(--ink); font-size: 1rem; letter-spacing: -.01em; }
+    .smarttool-library header p, .smarttool-canvas-column header p, .smarttool-output-column header p { color: var(--muted); font-size: .875rem; }
+    .smarttool-step { flex-basis: 30px; height: 30px; background: var(--blue-soft); color: var(--blue-dark); font-size: .875rem; }
+
+    .smarttool-library-item { min-height: 58px; border-color: var(--line); border-radius: 12px; padding: 10px; color: var(--ink); cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
+    .smarttool-library-item:hover, .smarttool-library-item:focus-visible { border-color: #77a6e9; background: #f7faff; transform: translateY(-1px); }
+    .smarttool-library-item.pinned { border-color: #b9d0f2; background: #f7faff; }
+    .smarttool-library-item .node-icon { height: 34px; border-radius: 10px; background: var(--blue-soft); color: var(--blue-dark); }
+    .smarttool-library-item strong { color: var(--ink); font-size: .875rem; }
+    .smarttool-library-item small { color: var(--muted); font-size: .875rem; }
+    .smarttool-library-item b { color: var(--blue-dark); font-size: .875rem; }
+    .smarttool-library-filters label, .smarttool-output-column label, .smarttool-phrase-name, .smarttool-node label { color: var(--ink); font-size: .875rem; font-weight: 700; }
+    .smarttool-library-filters input, .smarttool-library-filters select, .smarttool-output-column textarea, .smarttool-output-column input, .smarttool-phrase-name input, .smarttool-node input, .smarttool-node select, .smarttool-node textarea { min-height: 44px; border-color: #aeb9c8; border-radius: 10px; color: var(--ink); padding: 10px 11px; font-size: 1rem; line-height: 1.4; }
+    .smarttool-library-filters input:focus, .smarttool-library-filters select:focus, .smarttool-output-column textarea:focus, .smarttool-output-column input:focus, .smarttool-phrase-name input:focus, .smarttool-node input:focus, .smarttool-node select:focus, .smarttool-node textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(11,91,211,.12); outline: none; }
+    .smarttool-library-results { max-height: 610px; }
+    .smarttool-library-category, .smarttool-library-subcategory { border-color: #e0e6ee; border-radius: 10px; }
+    .smarttool-library-category > summary, .smarttool-library-subcategory > summary { min-height: 44px; align-items: center; color: var(--ink); background: #f6f8fb; font-size: .875rem; }
+    .smarttool-catalog-toggle { min-height: 44px; border-color: var(--line); border-radius: 10px; }
+    .smarttool-catalog-toggle input { width: 20px !important; height: 20px; min-height: 20px; flex: 0 0 20px; }
+    .placeholder-note, .smartbank-more { color: var(--muted); font-size: .875rem; }
+
+    .smarttool-phrase-name { grid-template-columns: auto 14px minmax(0,1fr); margin-bottom: 12px; }
+    .smarttool-phrase-name span { color: var(--blue-dark); }
+    .smarttool-canvas { min-height: 230px; border: 1px solid #c7d2e0; border-radius: 14px; background: #f6f8fb; padding: 10px; }
+    .smarttool-node { border-color: #d6dee8; border-left: 4px solid var(--blue); border-radius: 12px; box-shadow: 0 5px 14px rgba(23,32,51,.05); }
+    .smarttool-node[data-evidence="observed"], .smarttool-node[data-evidence="catalog"], .smarttool-node[data-evidence="creation"] { border-left-color: var(--warning); }
+    .smarttool-node > header { grid-template-columns: 24px minmax(0,1fr) auto; border-bottom-color: #e6ebf1; padding: 10px; background: #fbfcfe; }
+    .smarttool-node > header > div:nth-child(2) span { color: var(--muted); font-size: .8rem; letter-spacing: .035em; }
+    .smarttool-node > header strong { color: var(--ink); font-size: .9rem; }
+    .smarttool-node-actions button { width: 44px; height: 44px; border-color: #cbd4df; border-radius: 9px; color: #435168; }
+    .smarttool-node-actions button:hover:not(:disabled) { border-color: var(--blue); color: var(--blue-dark); background: var(--blue-soft); }
+    .smarttool-node-body { gap: 10px; padding: 12px; }
+    .smarttool-node-body p, .smarttool-node-body > small { color: var(--muted); font-size: .85rem; }
+    .smarttool-node-body code { background: var(--blue-soft); color: var(--blue-dark); }
+    .smarttool-evidence-note { border-top-color: #e1e7ef; }
+    .smarttool-evidence-badge { border: 0; background: var(--blue-soft); color: var(--blue-dark); padding: 3px 8px; font-size: .78rem; letter-spacing: 0; }
+    .smarttool-evidence-badge[data-evidence="observed"], .smarttool-evidence-badge[data-evidence="catalog"], .smarttool-evidence-badge[data-evidence="creation"] { background: var(--warning-bg); color: var(--warning); }
+    .smarttool-block-editor summary { min-height: 44px; color: var(--blue-dark); font-size: .875rem; }
+    .smarttool-quick-add { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-top: 10px; }
+    .smarttool-quick-add button { border: 1px solid #b9c7d9; border-radius: 10px; background: #fff; color: var(--blue-dark); padding: 8px; font-weight: 750; cursor: pointer; }
+    .smarttool-quick-add button:hover { border-color: var(--blue); background: var(--blue-soft); }
+    .smarttool-save-state { margin: 10px 2px 0; color: var(--teal); font-size: .875rem; font-weight: 700; }
+
+    .smarttool-output-column { top: 14px; }
+    .smarttool-output-column textarea { font-size: .86rem; }
+    .smarttool-output-column > button, .smarttool-output-inline button, .smarttool-output-details button { border: 1px solid var(--blue); border-radius: 11px; background: var(--blue); color: #fff; padding: 10px 12px; font-weight: 780; cursor: pointer; }
+    .smarttool-output-column > button:hover, .smarttool-output-inline button:hover, .smarttool-output-details button:hover { background: var(--blue-dark); }
+    .smarttool-output-column > button.secondary, .smarttool-output-inline button.secondary, .smarttool-output-details button.secondary { border-color: #aebbd0; background: #fff; color: var(--blue-dark); }
+    .smarttool-output-inline { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: end; }
+    .smarttool-output-inline button { align-self: end; white-space: nowrap; }
+    .smarttool-output-column > p { color: var(--teal); font-size: .875rem; }
+    .smarttool-preflight { border: 1px solid #cbdcf5; border-left: 4px solid var(--blue); border-radius: 11px; background: var(--blue-soft); padding: 11px 12px; }
+    .smarttool-preflight[data-state="incomplete"] { border-color: #efb4af; border-left-color: var(--danger); background: var(--danger-bg); }
+    .smarttool-preflight[data-state="assembly"] { border-color: #e2c980; border-left-color: var(--warning); background: var(--warning-bg); }
+    .smarttool-preflight[data-state="testing"] { border-color: #8ecab8; border-left-color: var(--teal); background: var(--teal-soft); }
+    .smarttool-preflight > strong { color: var(--ink); font-size: .9rem; }
+    .smarttool-preflight li { color: #4e596b; font-size: .8rem; }
+    .smarttool-output-details { border: 1px solid var(--line); border-radius: 11px; background: #f8fafc; }
+    .smarttool-output-details > summary { min-height: 44px; padding: 10px 12px; color: var(--ink); font-size: .875rem; font-weight: 750; cursor: pointer; }
+    .smarttool-output-details > div { display: grid; gap: 9px; padding: 0 12px 12px; }
+
+    .smarttool-advanced-panel, .smarttool-help { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: 0 8px 24px rgba(23,32,51,.04); }
+    .smarttool-help { display: block; }
+    .smarttool-advanced-panel > summary, .smarttool-help > summary { min-height: 48px; padding: 12px 15px; color: var(--ink); font-weight: 750; cursor: pointer; }
+    .smarttool-advanced-content, .smarttool-help-content { display: grid; gap: 14px; padding: 0 15px 15px; }
+    .smarttool-draft-actions { gap: 8px; }
+    .smarttool-draft-actions button, .bank-loader button { min-height: 44px; border: 1px solid #aebbd0; border-radius: 10px; background: #fff; color: var(--blue-dark); padding: 8px 12px; font-weight: 750; }
+    .smarttool-draft-actions button[data-smarttool-reset] { border-color: #e4aaa5; color: var(--danger); }
+    .bank-loader { margin: 0; border-color: var(--line); border-radius: 12px; background: #f8fafc; }
+    .bank-loader strong { color: var(--ink); }
+    .bank-loader .bank-status { color: var(--muted); font-size: .8rem; }
+    .smarttool-definition-strip { grid-template-columns: repeat(2,minmax(0,1fr)); border-color: var(--line); background: var(--line); }
+    .smarttool-definition-strip span { background: #f8fafc; color: var(--muted); font-size: .8rem; }
+    .smarttool-definition-strip strong { color: var(--ink); font-size: .85rem; }
+    .smarttool-help-content { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .smarttool-help > .smarttool-help-content { border: 0; border-radius: 0; background: transparent; padding: 0 15px 15px; }
+    .smarttool-help-content > div { border: 0; background: transparent; padding: 0; }
+    .smarttool-help h3 { color: var(--ink); font-size: .95rem; }
+    .smarttool-help p, .smarttool-help li { color: var(--muted); font-size: .88rem; }
+    .smarttool-help a { color: var(--blue-dark); }
+
+    #referenceBankPanel { border-color: var(--line); border-radius: 14px; }
+    #referenceBankPanel > summary { min-height: 48px; color: var(--ink); background: #f8fafc; }
+
+    @media (max-width: 1080px) {
+      .smarttool-layout { grid-template-columns: 1fr; }
+      .smarttool-canvas-column { order: 1; }
+      .smarttool-library { order: 2; }
+      .smarttool-output-column { position: static; order: 3; }
+      .smarttool-help-content { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .header-inner { padding: 11px 14px; }
+      .app-icon { width: 36px; height: 36px; border-radius: 10px; }
+      .app-header h1 { font-size: 1rem; }
+      .app-header p { font-size: .875rem; }
+      .offline-badge { display: none; }
+      main { padding: 12px; }
+      .smarttool-builder { gap: 10px; }
+      .smarttool-safety-callout { display: grid; gap: 2px; padding: 9px 11px; }
+      .smarttool-safety-callout p { font-size: .875rem; }
+      .smarttool-library, .smarttool-canvas-column, .smarttool-output-column { border-radius: 14px; padding: 13px; }
+      .smarttool-canvas-column > header { margin-bottom: 10px; }
+      .smarttool-node > header { grid-template-columns: 22px minmax(0,1fr); }
+      .smarttool-node-actions { grid-column: 2; flex-wrap: wrap; margin-top: 6px; }
+      .smarttool-node-actions button { width: 44px; height: 44px; }
+      .smarttool-quick-add { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .smarttool-output-inline { grid-template-columns: 1fr; }
+      .smarttool-output-inline button { width: 100%; }
+      .smarttool-definition-strip { grid-template-columns: 1fr; }
+      .smarttool-draft-actions button { flex: 1 1 120px; }
+      .bank-loader { align-items: stretch; }
+      .bank-loader button { width: 100%; }
+      .app-footer { padding: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
 </head>
 <body>
   <header class="app-header">
-    <div>
-      <h1>Epic SmartObject Builder</h1>
-      <p>Assemble Epic SmartPhrases from connected blocks — free text, SmartLinks, SmartLists, and wildcards — the way visual coding tools teach with modules. Then copy the assembled body into Epic.</p>
-    </div>
-    <div class="brand-badge">
-      <a href="https://ppeck.me" target="_blank" rel="noreferrer">Paul Peck</a>
-      <small>ppeck.me</small>
+    <div class="header-inner">
+      <div class="product-lockup">
+        <span class="app-icon" aria-hidden="true">S</span>
+        <div>
+          <h1>SmartPhrase Builder</h1>
+          <p>Build a phrase, one block at a time.</p>
+        </div>
+      </div>
+      <span class="offline-badge">Works offline</span>
     </div>
   </header>
 
   <main>
-    <div class="bank-loader">
-      <strong>Block library:</strong>
-      <span id="libraryOrigin">Built-in generic Epic starter set</span>
-      <button type="button" data-load-bank>Load reference bank (JSON)…</button>
-      <button type="button" data-clear-bank hidden>Remove loaded bank</button>
-      <input type="file" accept="application/json,.json" data-bank-file hidden>
-      <span class="bank-status" data-bank-status></span>
-    </div>
-
     <div id="builderMount"></div>
 
     <details id="referenceBankPanel" hidden>
@@ -208,8 +366,8 @@
   </main>
 
   <footer class="app-footer">
-    <p>This tool runs entirely in your browser. Nothing is uploaded, published, or connected to Epic. Drafts are saved in this browser's local storage only. SmartLink and SmartList availability and behavior differ by organization — always create and test every draft in your approved Epic training or test environment before clinical use. Do not enter patient information.</p>
-    <p>Built by <a href="https://ppeck.me" target="_blank" rel="noreferrer">Paul Peck — ppeck.me</a>.</p>
+    <p>Saved on this device. Not connected to Epic. Do not enter patient information.</p>
+    <p>Independent project by <a href="https://ppeck.me" target="_blank" rel="noreferrer">Paul Peck</a>. Not made or supported by Epic Systems Corporation.</p>
   </footer>
 
   <script>
@@ -226,10 +384,10 @@
     function slug(value) { return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80); }
 
     const EVIDENCE = {
-      exact: {label: "Exact token", note: "Author-controlled or a standard Epic system token; insert as written."},
-      observed: {label: "Verify locally", note: "Common token — confirm it is enabled and behaves as expected in your Epic."},
-      catalog: {label: "Catalog reference", note: "Named in a loaded reference bank; pasteable syntax and local availability are not confirmed."},
-      creation: {label: "Needs creation", note: "A planned element that must be created and inserted in Epic."}
+      exact: {label: "Ready", note: "This block is copied as written."},
+      observed: {label: "Check in Epic", note: "Make sure this works in your Epic setup."},
+      catalog: {label: "Check in Epic", note: "Find and add this item with Epic's insert tools."},
+      creation: {label: "Check in Epic", note: "Create or add this item in Epic before use."}
     };
 
     const DRAFT_SCHEMA = "epic-smartobject-builder";
@@ -251,18 +409,18 @@
       {id: "custom-smartlist", kind: "custom-smartlist", evidence: "creation", label: "New SmartList plan", description: "Define choices and settings, then create and insert the list in Epic.", category: "Basics", subCategory: "Build a new SmartList", token: ""},
       {id: "nested-smartphrase", kind: "smartlink", evidence: "observed", label: "Insert another SmartPhrase (@@)", description: "Nest an existing SmartPhrase by name using Epic's @@ tool; replace with the target name.", category: "Basics", subCategory: "Nesting", token: "@@", source: "Standard Epic nesting"},
 
-      link("@NAME@", "Patient full name", "Patient identifiers", "exact"),
-      link("@FNAME@", "Patient first name", "Patient identifiers", "exact"),
-      link("@LNAME@", "Patient last name", "Patient identifiers", "exact"),
-      link("@DOB@", "Date of birth", "Patient identifiers", "exact"),
-      link("@AGE@", "Patient age", "Patient identifiers", "exact"),
-      link("@SEX@", "Sex / gender", "Patient identifiers", "exact"),
+      link("@NAME@", "Patient full name", "Patient identifiers", "observed"),
+      link("@FNAME@", "Patient first name", "Patient identifiers", "observed"),
+      link("@LNAME@", "Patient last name", "Patient identifiers", "observed"),
+      link("@DOB@", "Date of birth", "Patient identifiers", "observed"),
+      link("@AGE@", "Patient age", "Patient identifiers", "observed"),
+      link("@SEX@", "Sex / gender", "Patient identifiers", "observed"),
       link("@MRN@", "Medical record number", "Patient identifiers", "observed"),
       link("@PRONOUN@", "Patient pronouns", "Patient identifiers", "observed"),
 
-      link("@TD@", "Today's date", "Encounter & author", "exact"),
-      link("@NOW@", "Current date and time", "Encounter & author", "exact"),
-      link("@ME@", "Current user (your name)", "Encounter & author", "exact"),
+      link("@TD@", "Today's date", "Encounter & author", "observed"),
+      link("@NOW@", "Current date and time", "Encounter & author", "observed"),
+      link("@ME@", "Current user (your name)", "Encounter & author", "observed"),
       link("@MYNAME@", "Logged-in user name", "Encounter & author", "observed"),
       link("@DOS@", "Date of service", "Encounter & author", "observed"),
       link("@DEPT@", "Department / clinic", "Encounter & author", "observed"),
@@ -329,39 +487,59 @@
     function renderSmartToolBuilder() {
       return `
         <section class="smarttool-builder" data-smarttool-builder>
-          <div class="smarttool-safety-callout"><strong>Draft and test before use in Epic</strong><p>This workspace does not connect to or publish in Epic. SmartLink and SmartList availability and behavior differ by organization. Use Epic's Insert SmartLink and Insert SmartList tools, then test every draft in the approved training or test workflow. Do not enter patient information; this draft is saved locally in this browser.</p></div>
-          <div class="smarttool-definition-strip" aria-label="Block evidence states">${Object.values(EVIDENCE).map((state) => `<span><strong>${escapeHtml(state.label)}</strong>${escapeHtml(state.note)}</span>`).join("")}</div>
-          <div class="smarttool-draft-actions" aria-label="Draft controls"><button type="button" data-smarttool-undo>Undo</button><button type="button" data-smarttool-redo>Redo</button><button type="button" data-smarttool-export>Export draft JSON</button><button type="button" data-smarttool-import>Import draft JSON</button><button type="button" data-smarttool-reset>Reset draft</button><input type="file" accept="application/json,.json" data-smarttool-import-file hidden></div>
+          <div class="smarttool-safety-callout"><strong>Test in Epic before use.</strong><p>Use your approved training area. Do not enter patient information here.</p></div>
           <div class="smarttool-layout">
             <aside class="smarttool-library" aria-label="Block library">
-              <header><span class="smarttool-step">1</span><div><h3>Block library</h3><p>Free text, wildcards, SmartLinks, SmartLists, and (when loaded) reference blocks.</p></div></header>
-              <button class="smarttool-library-item pinned" type="button" draggable="true" data-library-id="free-text">${renderLibraryItemContents({kind: "free-text", label: "Free text", description: "Always available at the top", evidence: "exact"})}</button>
-              <div class="smarttool-library-filters"><label>Search blocks<input type="search" data-smarttool-library-search placeholder="NAME, medication, @TD@…"></label><label>Category<select data-smarttool-library-category><option value="">All categories</option></select></label><label class="smarttool-catalog-toggle"><input type="checkbox" data-smarttool-include-catalog> Include catalog references</label></div>
+              <header><span class="smarttool-step" aria-hidden="true">+</span><div><h3>Add a block</h3><p>Choose what comes next.</p></div></header>
+              <button class="smarttool-library-item pinned" type="button" draggable="true" data-library-id="free-text">${renderLibraryItemContents({kind: "free-text", label: "Text", description: "Write your own words", evidence: "exact"})}</button>
+              <div class="smarttool-library-filters"><label>Find a block<input type="search" data-smarttool-library-search placeholder="Try name, date, or medication"></label><label>Show<select data-smarttool-library-category><option value="">All blocks</option></select></label><label class="smarttool-catalog-toggle"><input type="checkbox" data-smarttool-include-catalog> Show items from my library</label></div>
               <p class="placeholder-note" data-smarttool-library-summary></p>
               <div class="smarttool-library-results" data-smarttool-library-results></div>
             </aside>
             <section class="smarttool-canvas-column">
-              <header><span class="smarttool-step">2</span><div><h3>Connected block canvas</h3><p>Stack blocks in the order Epic should read them.</p></div></header>
-              <label class="smarttool-phrase-name">SmartPhrase name <span>.</span><input data-smarttool-phrase-name placeholder="MYFOLLOWUP" maxlength="64"></label>
-              <div class="smarttool-canvas" data-smarttool-canvas aria-label="SmartPhrase connected block canvas"></div>
-              <button class="smarttool-add-text" type="button" data-add-free-text>+ Add free-text block</button>
+              <header><span class="smarttool-step">1</span><div><h3>Your phrase</h3><p>Name it, then build it.</p></div></header>
+              <label class="smarttool-phrase-name">Name <span>.</span><input data-smarttool-phrase-name placeholder="MYFOLLOWUP" maxlength="64" autocomplete="off"></label>
+              <div class="smarttool-canvas" data-smarttool-canvas aria-label="Blocks in your SmartPhrase"></div>
+              <div class="smarttool-quick-add" aria-label="Quick add blocks">
+                <button type="button" data-quick-add="free-text">+ Text</button>
+                <button type="button" data-quick-add="wildcard">+ Wildcard</button>
+                <button type="button" data-quick-add="builtin-link-name">+ Patient name</button>
+                <button type="button" data-quick-add="custom-smartlist">+ SmartList</button>
+              </div>
+              <div class="smarttool-draft-actions" aria-label="Undo and redo"><button type="button" data-smarttool-undo>Undo</button><button type="button" data-smarttool-redo>Redo</button></div>
+              <p class="smarttool-save-state" data-smarttool-save-status aria-live="polite">Saved on this device</p>
             </section>
             <aside class="smarttool-output-column">
-              <header><span class="smarttool-step">3</span><div><h3>SmartPhrase draft</h3><p>Drafting checks only; this is not Epic validation.</p></div></header>
-              <section class="smarttool-preflight" data-smarttool-preflight aria-live="polite"><strong data-smarttool-preflight-status>Draft incomplete</strong><ul data-smarttool-preflight-list></ul></section>
-              <label>SmartPhrase name<input data-smarttool-name-output readonly></label><button type="button" data-copy-smarttool-name>Copy SmartPhrase name</button>
-              <label>Epic body<textarea data-smarttool-body-output rows="12" readonly></textarea></label><button type="button" data-copy-smarttool-body>Copy Epic body</button>
-              <label>Build notes<textarea data-smarttool-notes-output rows="12" readonly></textarea></label><button type="button" class="secondary" data-copy-smarttool-notes>Copy build notes</button>
+              <header><span class="smarttool-step">2</span><div><h3>Preview</h3><p>Check it, then copy it.</p></div></header>
+              <section class="smarttool-preflight" data-smarttool-preflight data-state="empty" aria-live="polite"><strong data-smarttool-preflight-status>Start with a name</strong><ul data-smarttool-preflight-list></ul></section>
+              <div class="smarttool-output-inline"><label>Phrase name<input data-smarttool-name-output readonly></label><button type="button" class="secondary" data-copy-smarttool-name>Copy name</button></div>
+              <label>Epic body<textarea data-smarttool-body-output rows="10" readonly></textarea></label><button type="button" data-copy-smarttool-body>Copy for Epic</button>
+              <details class="smarttool-output-details"><summary>Details</summary><div><label>Build notes<textarea data-smarttool-notes-output rows="8" readonly></textarea></label><button type="button" class="secondary" data-copy-smarttool-notes>Copy details</button></div></details>
               <p data-smarttool-copy-status aria-live="polite"></p>
             </aside>
           </div>
-          <section class="smarttool-help"><div><h3>Finish in Epic</h3><ol><li>Create or open the named SmartPhrase in SmartPhrase Manager.</li><li>Paste only the Epic body.</li><li>Create planned SmartLists, then use Insert SmartList for each planning placeholder.</li><li>Use Insert SmartLink for catalog references and confirm observed tokens locally.</li><li>Complete wildcards and personal placeholders, then test formatting, selections, and pulled chart data.</li></ol></div><div><h3>How the blocks work</h3><p>Each block emits one piece of the SmartPhrase body. Free text and templates are inserted verbatim; SmartLink blocks emit their <code>@TOKEN@</code>; new-SmartList blocks emit a build placeholder you replace with Epic's Insert SmartList. Drag from the library into the canvas, then reorder with drag handles or the arrow buttons.</p><ul>${RESEARCH_LINKS.map((item) => `<li><a href="${escapeHtml(item.href)}" target="_blank" rel="noreferrer">${escapeHtml(item.label)}</a></li>`).join("")}</ul></div></section>
+          <details class="smarttool-advanced-panel">
+            <summary>Open, save, and libraries</summary>
+            <div class="smarttool-advanced-content">
+              <div class="smarttool-draft-actions" aria-label="File and reset controls"><button type="button" data-smarttool-export>Save file</button><button type="button" data-smarttool-import>Open file</button><button type="button" data-smarttool-reset>Start over</button><input type="file" accept="application/json,.json" data-smarttool-import-file hidden></div>
+              <div class="bank-loader">
+                <strong>Your block library</strong>
+                <span id="libraryOrigin">Built-in starter set</span>
+                <button type="button" data-load-bank>Add your library</button>
+                <button type="button" data-clear-bank hidden>Remove library</button>
+                <input type="file" accept="application/json,.json" data-bank-file hidden>
+                <span class="bank-status" data-bank-status></span>
+              </div>
+              <div class="smarttool-definition-strip" aria-label="Block status labels"><span><strong>Ready</strong>This block is copied as written.</span><span><strong>Check in Epic</strong>Make sure this item works in your Epic setup.</span></div>
+            </div>
+          </details>
+          <details class="smarttool-help"><summary>Help</summary><div class="smarttool-help-content"><div><h3>Finish in Epic</h3><ol><li>Open your phrase in SmartPhrase Manager.</li><li>Paste the Epic body.</li><li>Add any SmartLinks or SmartLists marked “Check in Epic.”</li><li>Complete wildcards.</li><li>Test the result in your approved training area.</li></ol></div><div><h3>How blocks work</h3><p>Each block adds one part of the final phrase. Click a block to add it. Use the arrows to move it.</p><ul>${RESEARCH_LINKS.map((item) => `<li><a href="${escapeHtml(item.href)}" target="_blank" rel="noreferrer">${escapeHtml(item.label)}</a></li>`).join("")}</ul></div></div></details>
         </section>`;
     }
 
     function renderLibraryGroups(modules, searching) {
       if (!modules.length) return `<p class="placeholder-note">No blocks match this search.</p>`;
-      return [...groupBy(modules, (item) => item.category).entries()].map(([category, categoryModules]) => `<details class="smarttool-library-category" ${searching ? "open" : ""}><summary><span>${escapeHtml(category)}</span><b>${formatCount(categoryModules.length)}</b></summary><div>${[...groupBy(categoryModules, (item) => item.subCategory || "Other").entries()].map(([subCategory, subModules]) => { const visible = subModules.slice(0, searching ? 60 : 18); return `<details class="smarttool-library-subcategory" ${searching ? "open" : ""}><summary><span>${escapeHtml(subCategory)}</span><b>${formatCount(subModules.length)}</b></summary><div>${visible.map(renderLibraryItem).join("")}${subModules.length > visible.length ? `<p class="smartbank-more">${formatCount(subModules.length - visible.length)} more — search within this category.</p>` : ""}</div></details>`; }).join("")}</div></details>`).join("");
+      return [...groupBy(modules, (item) => item.category).entries()].map(([category, categoryModules]) => `<details class="smarttool-library-category" ${(searching || category === "Basics") ? "open" : ""}><summary><span>${escapeHtml(category)}</span><b>${formatCount(categoryModules.length)}</b></summary><div>${[...groupBy(categoryModules, (item) => item.subCategory || "Other").entries()].map(([subCategory, subModules], subIndex) => { const visible = subModules.slice(0, searching ? 60 : 18); return `<details class="smarttool-library-subcategory" ${(searching || (category === "Basics" && subIndex === 0)) ? "open" : ""}><summary><span>${escapeHtml(subCategory)}</span><b>${formatCount(subModules.length)}</b></summary><div>${visible.map(renderLibraryItem).join("")}${subModules.length > visible.length ? `<p class="smartbank-more">${formatCount(subModules.length - visible.length)} more — narrow your search.</p>` : ""}</div></details>`; }).join("")}</div></details>`).join("");
     }
 
     function renderLibraryItem(item) {
@@ -395,38 +573,39 @@
       const suppliedName = String(phraseName || "").trim();
       const canonicalInput = suppliedName.replace(/^\./, "").toUpperCase();
       const body = nodes.map(nodeOutput).filter((value) => value !== "").join("\n");
+      const pristine = !suppliedName && !hasMeaningfulMaterial(nodes);
       const issues = [];
       const add = (severity, label, message) => issues.push({severity, label, message});
-      if (!normalized) add("error", "Missing SmartPhrase name.", "Enter a name before assembly.");
-      if (suppliedName && (canonicalInput !== normalized || /[^A-Za-z0-9_]/.test(canonicalInput))) add("error", "Name normalized.", `Unsupported characters were removed; review .${normalized || "[ENTER_NAME]"}.`);
+      if (!pristine && !normalized) add("error", "Add a name.", "Every phrase needs a name.");
+      if (suppliedName && (canonicalInput !== normalized || /[^A-Za-z0-9_]/.test(canonicalInput))) add("error", "Check the name.", `Some characters were removed. Review .${normalized || "YOURPHRASE"}.`);
       const firstBlockBySignature = new Map();
       nodes.forEach((node, index) => {
-        if (node.kind === "free-text" && !node.text.trim()) add("error", "Empty free-text block.", `Block ${index + 1} has no content.`);
+        if (!pristine && node.kind === "free-text" && !node.text.trim()) add("error", "Empty text block.", `Add text to block ${index + 1}, or remove it.`);
         if (node.kind === "custom-smartlist") {
           const choices = choiceLines(node);
-          if (!normalizeName(node.listName)) add("error", "Unnamed custom SmartList.", `Block ${index + 1} needs a name.`);
-          if (!choices.length) add("error", "Custom SmartList has no choices.", `Block ${index + 1} needs at least one choice.`);
-          if (node.defaultChoice.trim() && !choices.includes(node.defaultChoice.trim())) add("error", "Invalid SmartList default.", `“${node.defaultChoice.trim()}” is not present in block ${index + 1}'s choices.`);
+          if (!normalizeName(node.listName)) add("error", "Name the SmartList.", `Block ${index + 1} needs a name.`);
+          if (!choices.length) add("error", "Add SmartList choices.", `Block ${index + 1} needs at least one choice.`);
+          if (node.defaultChoice.trim() && !choices.includes(node.defaultChoice.trim())) add("error", "Check the default choice.", `“${node.defaultChoice.trim()}” is not in block ${index + 1}.`);
         }
-        if (node.evidence === "catalog") add("warning", "Catalog reference.", `${node.label} requires Insert SmartLink or Insert SmartList in Epic.`);
-        if (node.evidence === "observed") add("warning", "Verify locally.", `${node.label} should be confirmed in your Epic.`);
-        if (node.evidence === "creation") add("warning", "Needs creation.", `${node.label} must be created and inserted in Epic.`);
-        if (node.evidence === "exact") add("info", "Exact token.", `${node.label} is inserted exactly as supplied or authored.`);
-        if (node.kind === "wildcard") add("warning", "Wildcard remains.", `Block ${index + 1} contains ***.`);
+        if (node.evidence === "catalog") add("warning", "Find this in Epic.", `Add ${node.label} with Epic's insert tools.`);
+        if (node.evidence === "observed") add("warning", "Check this in Epic.", `Make sure ${node.label} works in your Epic setup.`);
+        if (node.evidence === "creation") add("warning", "Finish this in Epic.", `Create or add ${node.label} before use.`);
+        if (node.kind === "wildcard") add("warning", "A wildcard remains.", `Complete *** in block ${index + 1}.`);
         const signature = nodeSignature(node);
-        if (firstBlockBySignature.has(signature)) add("warning", "Duplicate blocks.", `Blocks ${firstBlockBySignature.get(signature) + 1} and ${index + 1} produce the same content.`);
+        if (signature.endsWith("|") && pristine) return;
+        if (firstBlockBySignature.has(signature)) add("warning", "Two blocks match.", `Blocks ${firstBlockBySignature.get(signature) + 1} and ${index + 1} make the same text.`);
         else firstBlockBySignature.set(signature, index);
       });
-      if (!body.trim()) add("error", "Empty Epic body.", "Add meaningful content before assembly.");
-      if (/\[(?:ENTER_NAME|ADD(?:\s[^\]]*)?)\]/i.test(body)) add("error", "Incomplete placeholder.", "Replace remaining [ENTER_NAME] or [ADD …] placeholders.");
-      if (/\[\[INSERT\s[^\]]+\]\]/i.test(body)) add("warning", "Planning placeholder remains.", "Use Epic's Insert SmartLink or Insert SmartList tool for each [[INSERT …]] placeholder.");
-      if (/\[(?:INSERT\s+YOUR|YOUR\s+(?:NAME|CALLBACK|PHONE|CREDENTIAL)|PERSONAL)[^\]]*\]/i.test(body)) add("warning", "Personal-information placeholder.", "Replace the placeholder with approved user information; never enter patient information here.");
+      if (!pristine && !body.trim()) add("error", "Add some content.", "Your Epic body is empty.");
+      if (/\[(?:ENTER_NAME|ADD(?:\s[^\]]*)?)\]/i.test(body)) add("error", "Finish the placeholders.", "Replace each [ADD …] placeholder.");
+      if (/\[\[INSERT\s[^\]]+\]\]/i.test(body)) add("warning", "Finish this in Epic.", "Replace each insert note with Epic's SmartLink or SmartList tool.");
+      if (/\[(?:INSERT\s+YOUR|YOUR\s+(?:NAME|CALLBACK|PHONE|CREDENTIAL)|PERSONAL)[^\]]*\]/i.test(body)) add("warning", "Replace your placeholder.", "Use approved staff information. Never enter patient information here.");
       const errors = issues.filter((issue) => issue.severity === "error");
       const warnings = issues.filter((issue) => issue.severity === "warning");
-      const status = errors.length ? "Draft incomplete" : warnings.length ? "Ready for Epic assembly" : "Ready for Epic testing";
-      const stateKey = errors.length ? "incomplete" : warnings.length ? "assembly" : "testing";
+      const status = pristine ? "Start with a name" : errors.length ? "Finish these items" : warnings.length ? "Check before copying" : "Ready to copy";
+      const stateKey = pristine ? "empty" : errors.length ? "incomplete" : warnings.length ? "assembly" : "testing";
       const notes = buildNotes(nodes, body, issues);
-      return {name: `.${normalized || "[ENTER_NAME]"}`, body, buildNotes: notes, issues, status, stateKey};
+      return {name: `.${normalized || "YOURPHRASE"}`, body, buildNotes: notes, issues, status, stateKey, pristine};
     }
 
     function buildNotes(nodes, body, issues) {
@@ -439,9 +618,9 @@
         if (node.kind === "wildcard") lines.push(`[${state.label}] Wildcard *** remains for completion during documentation.`);
         else if (node.evidence === "exact") lines.push(`[${state.label}] ${node.label} — inserted exactly as supplied or authored.`);
       });
-      if (/\[(?:INSERT\s+YOUR|YOUR\s+(?:NAME|CALLBACK|PHONE|CREDENTIAL)|PERSONAL)[^\]]*\]/i.test(body)) lines.push("[Needs creation] Personal-information replacement placeholder remains. Use only approved user information; never patient information.");
-      issues.filter((issue) => issue.severity === "error").forEach((issue) => lines.push(`[Preflight] ${issue.label} ${issue.message}`));
-      lines.push("[Governance] This worksheet does not validate, publish, or approve content in Epic. Confirm organization-specific availability and test the Epic body in the approved training or test workflow.");
+      if (/\[(?:INSERT\s+YOUR|YOUR\s+(?:NAME|CALLBACK|PHONE|CREDENTIAL)|PERSONAL)[^\]]*\]/i.test(body)) lines.push("[Check in Epic] Replace the staff-information placeholder. Never use patient information here.");
+      issues.filter((issue) => issue.severity === "error").forEach((issue) => lines.push(`[Check] ${issue.label} ${issue.message}`));
+      lines.push("[Safety] This tool does not validate or publish in Epic. Test the result in your approved training area.");
       return lines.join("\n\n");
     }
 
@@ -472,12 +651,14 @@
       if (payload.version !== DRAFT_VERSION) throw new Error(`unsupported draft version ${payload.version == null ? "missing" : payload.version}`);
       const draft = payload.draft;
       if (!draft || typeof draft.phraseName !== "string" || !Array.isArray(draft.nodes)) throw new Error("draft data is malformed");
+      if (draft.phraseName.length > 64) throw new Error("the phrase name is too long");
+      if (draft.nodes.length > 500) throw new Error("the draft has too many blocks");
       if (draft.nodes.some((node) => !node || typeof node !== "object" || typeof node.uid !== "string" || typeof node.kind !== "string" || !EVIDENCE[node.evidence])) throw new Error("one or more blocks are malformed or use an unsupported evidence state");
       return {serial: Number(draft.serial) || 0, phraseName: draft.phraseName, nodes: draft.nodes.map((node) => ({...node}))};
     }
     function exportDraft(draft) {
       const payload = {schema: DRAFT_SCHEMA, version: DRAFT_VERSION, exportedAt: new Date().toISOString(), warning: "No patient information belongs in this draft.", draft};
-      downloadJson(payload, "epic-smartobject-draft.json");
+      downloadJson(payload, "smartphrase-draft.json");
     }
     function downloadJson(payload, filename) {
       const blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
@@ -487,8 +668,8 @@
     }
     async function copyBuilderText(value, root) {
       const status = root.querySelector("[data-smarttool-copy-status]");
-      try { await navigator.clipboard.writeText(String(value || "")); if (status) status.textContent = "Copied to clipboard."; }
-      catch { if (status) status.textContent = "Clipboard access was unavailable. Select and copy the output manually."; }
+      try { await navigator.clipboard.writeText(String(value || "")); if (status) status.textContent = "Copied."; }
+      catch { if (status) status.textContent = "Copy did not work. Select the text and copy it manually."; }
     }
 
     // ---------- builder controller (re-buildable when a bank loads) ----------
@@ -503,6 +684,7 @@
       const canvas = root.querySelector("[data-smarttool-canvas]");
       const phraseName = root.querySelector("[data-smarttool-phrase-name]");
       const status = root.querySelector("[data-smarttool-copy-status]");
+      const saveStatus = root.querySelector("[data-smarttool-save-status]");
       const stored = loadStoredDraft();
       let serial = (stored && stored.draft && stored.draft.serial) || 0;
       let nodes = [];
@@ -515,21 +697,33 @@
         text: module.kind === "template" ? module.body : "", listName: "", choices: "", defaultChoice: "", multiple: "Single selection",
         sourcePages: module.sourcePages || [], specialty: module.specialty || "", privacyNotice: module.privacyNotice || "", requirementStatus: module.requirementStatus || ""
       });
+      const refreshNodeMetadata = (node) => {
+        const currentModule = libraryById.get(node.moduleId);
+        if (!currentModule) return {...node};
+        return {...node, evidence: currentModule.evidence, label: currentModule.label, token: currentModule.token || node.token || "", description: currentModule.description || node.description || "", source: currentModule.source || node.source || ""};
+      };
       if (stored && stored.draft) {
         phraseName.value = stored.draft.phraseName || "";
-        nodes = stored.draft.nodes.map((node) => ({...node}));
+        nodes = stored.draft.nodes.map(refreshNodeMetadata);
       } else {
         nodes = [createNode(libraryById.get("free-text"))];
         if (stored && stored.error) status.textContent = stored.error;
       }
       let lastPhraseName = phraseName.value;
+      let phraseNameEditStarted = false;
 
       const snapshot = () => ({serial, phraseName: phraseName.value, nodes: nodes.map((node) => ({...node}))});
-      const restore = (draft) => { serial = Number(draft.serial) || 0; phraseName.value = draft.phraseName || ""; lastPhraseName = phraseName.value; nodes = draft.nodes.map((node) => ({...node})); renderCanvas(); };
+      const restore = (draft) => { serial = Number(draft.serial) || 0; phraseName.value = draft.phraseName || ""; lastPhraseName = phraseName.value; nodes = draft.nodes.map(refreshNodeMetadata); renderCanvas(); };
       const recordHistory = () => { undoStack.push(snapshot()); if (undoStack.length > 100) undoStack.shift(); redoStack = []; syncHistoryButtons(); };
       const persistDraft = () => {
-        try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({schema: DRAFT_SCHEMA, version: DRAFT_VERSION, draft: snapshot()})); }
-        catch { status.textContent = "Local draft saving is unavailable in this browser. Export JSON to preserve the draft."; }
+        try {
+          localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({schema: DRAFT_SCHEMA, version: DRAFT_VERSION, draft: snapshot()}));
+          if (saveStatus) saveStatus.textContent = "Saved on this device";
+        }
+        catch {
+          if (saveStatus) saveStatus.textContent = "Not saved";
+          status.textContent = "Saving is unavailable. Use Save file to keep this draft.";
+        }
       };
       const syncHistoryButtons = () => {
         root.querySelector("[data-smarttool-undo]").disabled = !undoStack.length;
@@ -539,7 +733,7 @@
       const syncLibraryCategories = () => {
         const current = category.value;
         const values = [...new Set(library.filter((item) => includeCatalog.checked || item.evidence !== "catalog").map((item) => item.category).filter(Boolean))].sort();
-        category.innerHTML = `<option value="">All categories</option>${values.map((value) => `<option>${escapeHtml(value)}</option>`).join("")}`;
+        category.innerHTML = `<option value="">All blocks</option>${values.map((value) => `<option>${escapeHtml(value)}</option>`).join("")}`;
         if (values.includes(current)) category.value = current;
       };
       const renderLibrary = () => {
@@ -547,7 +741,7 @@
         const selectedCategory = category.value;
         const matches = library.filter((item) => item.id !== "free-text" && (includeCatalog.checked || item.evidence !== "catalog") && (!query || item.searchText.includes(query)) && (!selectedCategory || item.category === selectedCategory));
         const shown = matches.slice(0, query ? 320 : matches.length);
-        librarySummary.textContent = `${formatCount(matches.length)} blocks match${includeCatalog.checked ? "; catalog references included" : "; catalog references hidden"}${matches.length > shown.length ? "; showing 320 — narrow the search" : ""}.`;
+        librarySummary.textContent = `${formatCount(matches.length)} blocks${includeCatalog.checked ? " including your library" : ""}${matches.length > shown.length ? "; narrow your search to see more" : ""}.`;
         libraryResults.innerHTML = renderLibraryGroups(shown, Boolean(query));
         libraryResults.querySelectorAll("[data-library-id]").forEach(wireLibraryItem);
         libraryResults.querySelectorAll("[data-template-action]").forEach((button) => button.addEventListener("click", (event) => { event.stopPropagation(); useTemplate(button.dataset.libraryId, button.dataset.templateAction); }));
@@ -574,7 +768,7 @@
         if (!module) return;
         const populated = hasMeaningfulMaterial(nodes);
         if (action === "start") {
-          if (populated && !window.confirm("Start a new draft from this template and replace the current canvas?")) return;
+          if (populated && !window.confirm("Replace this phrase with the template?")) return;
           recordHistory();
           nodes = [createNode(module)];
           phraseName.value = normalizeName(module.label);
@@ -614,17 +808,24 @@
         renderCanvas();
       }
       function renderCanvas() {
-        canvas.innerHTML = nodes.length ? nodes.map((node, index) => renderCanvasNode(node, index, nodes.length)).join("") : `<div class="smarttool-empty"><strong>Drop blocks here</strong><span>Start with free text, a token, a wildcard, a planning block, or a template.</span></div>`;
+        canvas.innerHTML = nodes.length ? nodes.map((node, index) => renderCanvasNode(node, index, nodes.length)).join("") : `<div class="smarttool-empty"><strong>Add your first block</strong><span>Choose a quick button below, or pick one from the block list.</span></div>`;
         canvas.querySelectorAll("[data-tool-node]").forEach((block) => block.addEventListener("dragstart", (event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", `node:${block.dataset.toolNode}`); }));
         canvas.querySelectorAll("[data-node-action]").forEach((button) => button.addEventListener("click", () => applyNodeAction(button.dataset.nodeAction, button.closest("[data-tool-node]").dataset.toolNode)));
-        canvas.querySelectorAll("input, textarea, select").forEach((field) => field.addEventListener("input", () => updateNode(field)));
+        canvas.querySelectorAll("input, textarea, select").forEach((field) => {
+          field.addEventListener("focus", () => { field.dataset.historyRecorded = "false"; });
+          field.addEventListener("blur", () => { delete field.dataset.historyRecorded; });
+          field.addEventListener("input", () => updateNode(field));
+        });
         canvas.querySelectorAll("select").forEach((field) => field.addEventListener("change", () => updateNode(field)));
         updateOutputs();
       }
       function updateNode(field) {
         const node = nodes.find((item) => item.uid === field.closest("[data-tool-node]").dataset.toolNode);
         if (!node || node[field.dataset.nodeField] === field.value) return;
-        recordHistory();
+        if (field.dataset.historyRecorded !== "true") {
+          recordHistory();
+          field.dataset.historyRecorded = "true";
+        }
         node[field.dataset.nodeField] = field.value;
         updateOutputs();
       }
@@ -646,25 +847,30 @@
         const preflight = root.querySelector("[data-smarttool-preflight]");
         preflight.dataset.state = evaluation.stateKey;
         root.querySelector("[data-smarttool-preflight-status]").textContent = evaluation.status;
-        root.querySelector("[data-smarttool-preflight-list]").innerHTML = evaluation.issues.length ? evaluation.issues.map((issue) => `<li data-severity="${issue.severity}"><strong>${escapeHtml(issue.label)}</strong> ${escapeHtml(issue.message)}</li>`).join("") : `<li><strong>Local drafting checks passed.</strong> Test the draft in the approved Epic training or test workflow.</li>`;
+        root.querySelector("[data-smarttool-preflight-list]").innerHTML = evaluation.pristine ? `<li>Name your phrase, then type in the first block.</li>` : evaluation.issues.length ? evaluation.issues.map((issue) => `<li data-severity="${issue.severity}"><strong>${escapeHtml(issue.label)}</strong> ${escapeHtml(issue.message)}</li>`).join("") : `<li>Ready to copy. Test it in Epic before clinical use.</li>`;
         persistDraft();
         syncHistoryButtons();
       }
 
+      phraseName.addEventListener("focus", () => { phraseNameEditStarted = false; });
+      phraseName.addEventListener("blur", () => { phraseNameEditStarted = false; });
       phraseName.addEventListener("input", () => {
         const nextName = phraseName.value;
         phraseName.value = lastPhraseName;
-        recordHistory();
+        if (!phraseNameEditStarted) {
+          recordHistory();
+          phraseNameEditStarted = true;
+        }
         phraseName.value = nextName;
         lastPhraseName = nextName;
         updateOutputs();
       });
-      root.querySelector("[data-add-free-text]").addEventListener("click", () => addModule("free-text"));
+      root.querySelectorAll("[data-quick-add]").forEach((button) => button.addEventListener("click", () => addModule(button.dataset.quickAdd)));
       root.querySelector("[data-smarttool-undo]").addEventListener("click", () => { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); });
       root.querySelector("[data-smarttool-redo]").addEventListener("click", () => { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); });
       root.querySelector("[data-smarttool-reset]").addEventListener("click", () => {
-        if (!window.confirm("Reset the SmartPhrase name and all canvas blocks?")) return;
-        recordHistory(); phraseName.value = ""; lastPhraseName = ""; nodes = [createNode(libraryById.get("free-text"))]; status.textContent = "Draft reset. Undo is available."; renderCanvas();
+        if (!window.confirm("Start over and clear this phrase?")) return;
+        recordHistory(); phraseName.value = ""; lastPhraseName = ""; nodes = [createNode(libraryById.get("free-text"))]; status.textContent = "New phrase ready. You can undo this."; renderCanvas();
       });
       root.querySelector("[data-smarttool-export]").addEventListener("click", () => exportDraft(snapshot()));
       const importFile = root.querySelector("[data-smarttool-import-file]");
@@ -673,10 +879,11 @@
         const file = importFile.files && importFile.files[0];
         if (!file) return;
         try {
+          if (file.size > 2 * 1024 * 1024) throw new Error("file is larger than 2 MB");
           const payload = JSON.parse(await file.text());
           const draft = validateDraftPayload(payload);
-          recordHistory(); restore(draft); status.textContent = "Draft imported. Review all content and confirm that it contains no patient information.";
-        } catch (error) { status.textContent = `Import rejected: ${error.message}`; }
+          recordHistory(); restore(draft); status.textContent = "File opened. Review it before use.";
+        } catch (error) { status.textContent = `Could not open file: ${error.message}`; }
         importFile.value = "";
       });
       root.querySelector("[data-copy-smarttool-name]").addEventListener("click", () => copyBuilderText(root.querySelector("[data-smarttool-name-output]").value, root));

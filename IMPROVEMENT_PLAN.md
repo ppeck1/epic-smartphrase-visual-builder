@@ -171,6 +171,54 @@ The design should feel quiet, warm, and exact.
 - Honor `prefers-reduced-motion`.
 - Do not use glass effects or decoration that makes reading harder.
 
+## Ethical color and behavior plan
+
+Color can guide attention before a person reads the words. We will use that power to prevent mistakes and make choices clear. We will not use false urgency, hidden choices, or colors that push users into unsafe actions.
+
+| Job | Color | Why it works | Where to use it |
+| --- | --- | --- | --- |
+| Main action | Deep blue `#0B5BD3` | Blue is familiar, calm, and strongly linked with trust and competence. | The one main button, selected controls, and active focus. |
+| Main action hover | Dark blue `#0847A6` | A darker value gives clear feedback without changing meaning. | Hover and pressed states only. |
+| Finished successfully | Deep green `#0B6B55` | Green signals completion and lowers doubt after a real success. | Saved, copied, and ready states only after they happen. |
+| Check before use | Dark amber `#8A5C00` | Amber slows people down without the alarm of red. | SmartLinks, SmartLists, wildcards, and anything that must be checked in Epic. |
+| Blocked or destructive | Deep red `#B42318` | Red gets fast attention and is widely understood as stop or danger. | Invalid work, failed actions, remove, and start-over warnings only. |
+| Page background | Cool gray `#F4F7FB` | A quiet background lowers visual strain and makes the work surface easy to find. | The page behind cards. |
+| Work surface | White `#FFFFFF` | White gives the builder a clean, focused work area. | The library, phrase, and preview cards. |
+| Main text | Soft near-black `#172033` | High contrast feels clear and dependable without the harshness of pure black. | Titles, labels, and important text. |
+| Supporting text | Slate `#596579` | Slate stays readable while clearly stepping behind the main text. | Help, notes, and descriptions. |
+| Borders | Blue-gray `#D9E0EA` | Low-contrast edges group content without adding noise. | Cards, fields, and dividers. |
+
+### Color rules
+
+- Only one filled blue button should appear in a view.
+- Green appears only after success. It never promises that Epic has approved the content.
+- Amber means “pause and check,” not “something failed.”
+- Red never appears on a new, untouched draft.
+- Every color message also uses words or an icon.
+- Disabled controls use lower contrast but stay readable.
+- Focus uses a blue ring that is easy to see on every surface.
+- Status colors use pale backgrounds and dark text so they remain readable.
+- All normal text and controls must meet WCAG 2.2 AA contrast.
+
+The implemented core pairs pass the 4.5:1 AA target: blue on white is 6.08:1, green on white is 6.46:1, amber on its pale background is 5.43:1, red on its pale background is 5.98:1, supporting slate on white is 5.90:1, and main text on white is 16.27:1.
+
+## Build progress
+
+Phase 1 is in progress. The first build pass includes:
+
+- A compact header and a shorter safety note.
+- The name field and phrase builder first on phones.
+- One deep-blue **Copy for Epic** action.
+- Neutral secondary controls.
+- Green only for saved, copied, and ready states.
+- Amber for items that must be checked in Epic.
+- Red only for blocked work and start-over warnings.
+- Plain labels such as **Add a block**, **Your phrase**, and **Preview**.
+- Advanced file and library tools moved behind one menu.
+- Build notes moved into **Details**.
+- Friendlier first-use guidance instead of immediate errors.
+- Larger type and touch targets.
+
 ## Access for everyone
 
 - Meet WCAG 2.2 AA.
@@ -198,7 +246,7 @@ The design should feel quiet, warm, and exact.
 - A first-time user can build and copy a basic phrase in under one minute without help.
 - Main instructions use short sentences and common words.
 - There is only one bright primary button in each view.
-- No text is smaller than 14 px; normal reading text is at least 16 px.
+- Instructions and labels are at least 14 px; normal reading text is at least 16 px. Small status tags may use 12–13 px when contrast stays strong.
 - Every control works by keyboard and touch.
 - There is no sideways scroll at 320 px wide.
 - The main flow has no console errors.
