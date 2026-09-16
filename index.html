@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Epic SmartObject Builder — visual, node-based</title>
+  <meta name="description" content="A visual, node-based builder for Epic SmartPhrases and SmartObjects. Stack blocks like coding modules, then copy the assembled body into Epic. Built by Paul Peck.">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #5e6875;
+      --line: #d8e0e6;
+      --paper: #ffffff;
+      --soft: #f4f7f9;
+      --navy: #183b56;
+      --teal: #27756f;
+      --blue: #2f6f9f;
+      --blue-dark: #1f4f74;
+      --warning: #be7d00;
+      --warning-bg: #fff8dc;
+      --shadow: 0 10px 28px rgba(18, 44, 63, 0.09);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #edf2f5; color: var(--ink); font-size: 0.96rem; line-height: 1.5; }
+    a { color: var(--blue-dark); }
+    button { font: inherit; }
+    .placeholder-note { color: var(--muted); font-size: .85rem; }
+
+    /* Page frame */
+    .app-header { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; padding: 16px clamp(16px, 3vw, 40px); background: linear-gradient(110deg, #12324a, #1f5a73); color: #fff; }
+    .app-header h1 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.5rem); letter-spacing: .01em; }
+    .app-header p { margin: 3px 0 0; color: #cfe3ec; font-size: .82rem; max-width: 62ch; }
+    .app-header .brand-badge { display: grid; gap: 2px; text-align: right; }
+    .app-header .brand-badge a { color: #fff; font-weight: 850; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.5); }
+    .app-header .brand-badge small { color: #bcd6e2; font-size: .68rem; }
+    main { max-width: 1760px; margin: 0 auto; padding: clamp(16px, 2.4vw, 30px); }
+    .app-footer { max-width: 1760px; margin: 8px auto 30px; padding: 18px clamp(16px, 2.4vw, 30px); color: var(--muted); font-size: .82rem; }
+    .app-footer a { font-weight: 750; }
+    .bank-loader { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 16px; border: 1px solid #cddbe4; border-radius: 12px; background: #fff; padding: 12px 14px; }
+    .bank-loader strong { color: var(--navy); }
+    .bank-loader button { min-height: 36px; border: 1px solid #8da5b3; border-radius: 8px; background: #fff; color: var(--navy); padding: 6px 12px; font-weight: 800; cursor: pointer; }
+    .bank-loader button:hover { border-color: #9614c6; color: #681184; }
+    .bank-loader .bank-status { margin-left: auto; color: var(--muted); font-size: .8rem; }
+
+    /* ---- Builder (carried over from the original dashboard design) ---- */
+    .smarttool-builder { display: grid; gap: 16px; }
+    .smarttool-safety-callout { border: 1px solid #e0bd54; border-left: 6px solid #be7d00; border-radius: 10px; background: #fff8dc; padding: 13px 15px; }
+    .smarttool-safety-callout strong { color: #5d4100; }
+    .smarttool-safety-callout p { margin: 5px 0 0; color: #614b14; line-height: 1.48; }
+    .smarttool-definition-strip { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1px; overflow: hidden; border: 1px solid #d2dee5; border-radius: 10px; background: #d2dee5; }
+    .smarttool-definition-strip span { display: grid; gap: 3px; background: #f7fafb; padding: 10px 12px; color: var(--muted); font-size: .76rem; }
+    .smarttool-definition-strip strong { color: var(--navy); font-size: .8rem; }
+    .smarttool-draft-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .smarttool-draft-actions button { min-height: 38px; border: 1px solid #8da5b3; border-radius: 8px; background: #fff; color: var(--navy); padding: 7px 11px; font-weight: 800; cursor: pointer; }
+    .smarttool-draft-actions button[data-smarttool-reset] { margin-left: auto; border-color: #a85d5d; color: #7c2424; }
+    .smarttool-draft-actions button:disabled { cursor: not-allowed; opacity: .42; }
+    .smarttool-layout { display: grid; grid-template-columns: minmax(240px,.72fr) minmax(390px,1.35fr) minmax(285px,.86fr); gap: 14px; align-items: start; }
+    .smarttool-library, .smarttool-canvas-column, .smarttool-output-column { min-width: 0; border: 1px solid #d2dee5; border-radius: 12px; background: #f8fafb; padding: 13px; }
+    .smarttool-library > header, .smarttool-canvas-column > header, .smarttool-output-column > header { display: flex; gap: 9px; align-items: start; margin-bottom: 12px; }
+    .smarttool-library h3, .smarttool-canvas-column h3, .smarttool-output-column h3 { margin: 0; color: var(--navy); font-size: .98rem; }
+    .smarttool-library header p, .smarttool-canvas-column header p, .smarttool-output-column header p { margin: 2px 0 0; color: var(--muted); font-size: .75rem; }
+    .smarttool-step { display: grid; flex: 0 0 27px; height: 27px; place-items: center; border-radius: 999px; background: #9614c6; color: #fff; font-size: .76rem; font-weight: 900; }
+    .smarttool-library-item { display: grid; grid-template-columns: 30px minmax(0,1fr) auto; gap: 9px; align-items: center; width: 100%; border: 1px solid #d3dfe6; border-radius: 9px; background: #fff; padding: 9px; color: var(--ink); text-align: left; cursor: grab; }
+    .smarttool-library-item + .smarttool-library-item { margin-top: 7px; }
+    .smarttool-library-item:hover, .smarttool-library-item:focus-visible { border-color: #9614c6; background: #fdf9ff; }
+    .smarttool-library-item.pinned { position: sticky; top: 0; z-index: 2; border-color: #b88acd; background: #fbf2ff; }
+    .smarttool-library-item .node-icon { display: grid; height: 30px; place-items: center; border-radius: 7px; background: #e9d9f0; color: #631083; font: 900 .95rem/1 ui-monospace,Consolas,monospace; }
+    .smarttool-library-item > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; }
+    .smarttool-library-item strong { color: var(--navy); font-size: .79rem; overflow-wrap: anywhere; }
+    .smarttool-library-item small { display: -webkit-box; overflow: hidden; color: var(--muted); font-size: .68rem; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .smarttool-library-item b { color: #681184; font-size: .7rem; }
+    .smarttool-evidence-badge { justify-self: start; width: fit-content; border: 1px solid currentColor; border-radius: 999px; padding: 2px 7px; color: #315f75; background: #edf7fb; font-size: .61rem; font-weight: 900; letter-spacing: .025em; line-height: 1.35; }
+    .smarttool-evidence-badge[data-evidence="observed"] { color: #75500b; background: #fff7da; }
+    .smarttool-evidence-badge[data-evidence="catalog"] { color: #70447d; background: #f7edfa; }
+    .smarttool-evidence-badge[data-evidence="creation"] { color: #8a2e2e; background: #fff0f0; }
+    .smarttool-catalog-toggle { display: flex !important; align-items: center; gap: 8px; border: 1px solid #d3dfe6; border-radius: 8px; background: #fff; padding: 8px 9px; }
+    .smarttool-catalog-toggle input { width: auto; }
+    .smarttool-template-item { cursor: grab; }
+    .smarttool-template-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .smarttool-template-actions button { border: 1px solid #7c10a4; border-radius: 7px; background: #fff; color: #681184; padding: 7px; font-size: .67rem; font-weight: 850; cursor: pointer; }
+    .smarttool-template-actions button:first-child { background: #7c10a4; color: #fff; }
+    .smarttool-library-filters { display: grid; gap: 8px; margin: 12px 0 9px; }
+    .smarttool-library-filters label, .smarttool-output-column label, .smarttool-phrase-name, .smarttool-node label { display: grid; gap: 5px; color: var(--navy); font-size: .74rem; font-weight: 800; }
+    .smarttool-library-filters input, .smarttool-library-filters select, .smarttool-output-column textarea, .smarttool-output-column input, .smarttool-phrase-name input, .smarttool-node input, .smarttool-node select, .smarttool-node textarea { width: 100%; min-width: 0; border: 1px solid #afc0ca; border-radius: 8px; background: #fff; color: var(--ink); padding: 8px 9px; font: 500 .8rem/1.4 inherit; }
+    .smarttool-library-results { max-height: 650px; overflow: auto; padding-right: 3px; }
+    .smarttool-phrase-name { grid-template-columns: auto 12px minmax(0,1fr); align-items: center; margin-bottom: 10px; }
+    .smarttool-phrase-name span { color: #681184; font-size: 1.3rem; font-weight: 900; }
+    .smarttool-canvas { display: grid; gap: 10px; min-height: 250px; border: 2px dashed #b9cbd5; border-radius: 11px; background: #eef5f8; padding: 10px; }
+    .smarttool-empty { display: grid; place-content: center; gap: 5px; min-height: 210px; color: var(--muted); text-align: center; }
+    .smarttool-empty strong { color: var(--navy); }
+    .smarttool-node { overflow: hidden; border: 1px solid #cddae2; border-left: 5px solid #4d829d; border-radius: 10px; background: #fff; box-shadow: 0 5px 12px rgba(18,44,63,.06); }
+    .smarttool-node.smartlink { border-left-color: #138c82; }
+    .smarttool-node.existing-smartlist, .smarttool-node.custom-smartlist { border-left-color: #c48a0b; }
+    .smarttool-node.template { border-left-color: #9614c6; }
+    .smarttool-node.wildcard { border-left-color: #73818a; }
+    .smarttool-node > header { display: grid; grid-template-columns: 25px minmax(0,1fr) auto; gap: 7px; align-items: center; border-bottom: 1px solid #e1e8ec; padding: 8px 9px; background: #fbfcfd; }
+    .smarttool-drag-handle { color: #718795; cursor: grab; font-size: 1.15rem; }
+    .smarttool-node > header > div:nth-child(2) { display: grid; gap: 1px; min-width: 0; }
+    .smarttool-node > header > div:nth-child(2) span { color: #667b88; font-size: .62rem; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
+    .smarttool-node > header strong { color: var(--navy); font-size: .82rem; overflow-wrap: anywhere; }
+    .smarttool-node-actions { display: flex; gap: 3px; }
+    .smarttool-node-actions button { display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid #c4d1d9; border-radius: 6px; background: #fff; color: #445e6e; padding: 0; cursor: pointer; }
+    .smarttool-node-actions button:hover:not(:disabled) { border-color: #9614c6; color: #681184; }
+    .smarttool-node-actions button:disabled { opacity: .35; cursor: default; }
+    .smarttool-node-body { display: grid; gap: 8px; padding: 10px; }
+    .smarttool-node-body p { margin: 0; color: var(--muted); font-size: .75rem; line-height: 1.42; }
+    .smarttool-node-body code { justify-self: start; border-radius: 6px; background: #e7f5f3; color: #075e5b; padding: 5px 8px; font-weight: 850; overflow-wrap: anywhere; }
+    .smarttool-node-body > small { color: #71818b; font-size: .68rem; }
+    .smarttool-evidence-note { border-top: 1px solid #dbe5ea; padding-top: 7px; }
+    .smarttool-block-editor summary { cursor: pointer; color: #5f147b; font-weight: 800; font-size: .78rem; }
+    .smarttool-block-editor { display: grid; gap: 8px; }
+    .smarttool-list-editor { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+    .smarttool-list-editor label:nth-child(3) { grid-column: 1 / -1; }
+    .smarttool-add-text { width: 100%; margin-top: 9px; border: 1px dashed #8faab8; border-radius: 8px; background: #fff; color: var(--blue-dark); padding: 9px; font-weight: 800; cursor: pointer; }
+    .smarttool-output-column { position: sticky; top: 12px; display: grid; gap: 9px; }
+    .smarttool-output-column textarea { resize: vertical; background: #fff; font: 500 .75rem/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .smarttool-output-column > button { border: 1px solid #7c10a4; border-radius: 8px; background: #9614c6; color: #fff; padding: 9px 11px; font-weight: 850; cursor: pointer; }
+    .smarttool-output-column > button.secondary { background: #fff; color: #681184; }
+    .smarttool-output-column > p { min-height: 18px; margin: 0; color: #08716b; font-size: .75rem; font-weight: 750; }
+    .smarttool-preflight { border: 1px solid #d59b9b; border-left: 5px solid #b63e3e; border-radius: 9px; background: #fff4f4; padding: 10px 11px; }
+    .smarttool-preflight[data-state="assembly"] { border-color: #d9b65a; border-left-color: #b77b00; background: #fff9e5; }
+    .smarttool-preflight[data-state="testing"] { border-color: #78b9a8; border-left-color: #087568; background: #effaf7; }
+    .smarttool-preflight > strong { color: var(--navy); font-size: .85rem; }
+    .smarttool-preflight ul { display: grid; gap: 4px; margin: 7px 0 0; padding-left: 18px; }
+    .smarttool-preflight li { color: #5d4a4a; font-size: .69rem; line-height: 1.35; }
+    .smarttool-preflight li[data-severity="warning"] { color: #6d540c; }
+    .smarttool-preflight[data-state="testing"] li[data-severity="info"] { color: #175f55; }
+    .smarttool-help { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+    .smarttool-help > div { border: 1px solid #d5e1e7; border-radius: 10px; background: #f8fafb; padding: 15px; }
+    .smarttool-help h3 { margin: 0 0 8px; color: var(--navy); }
+    .smarttool-help p, .smarttool-help li { color: var(--muted); font-size: .83rem; line-height: 1.48; }
+    .smarttool-help a { color: #681184; font-weight: 750; }
+    .smarttool-library-category, .smarttool-library-subcategory { border: 1px solid #dde7ec; border-radius: 8px; margin-bottom: 7px; overflow: hidden; }
+    .smarttool-library-category > summary, .smarttool-library-subcategory > summary { display: flex; justify-content: space-between; gap: 8px; cursor: pointer; padding: 8px 10px; color: var(--navy); font-weight: 800; font-size: .76rem; background: #eef5f8; }
+    .smarttool-library-subcategory > summary { background: #f6fafb; font-weight: 700; }
+    .smarttool-library-category > div, .smarttool-library-subcategory > div { padding: 8px; }
+    .smartbank-more { margin: 4px 0 0; color: var(--muted); font-size: .68rem; }
+
+    /* Optional reference-bank browser */
+    .smartphrase-bank-page { display: grid; gap: 15px; }
+    .smartphrase-boundary { border-left: 4px solid var(--warning); border-radius: 8px; background: var(--warning-bg); padding: 11px 13px; }
+    .smartphrase-boundary p { margin: 5px 0 0; color: #5c4600; }
+    .smartbank-count-strip { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+    .smartbank-count-strip span { display: grid; gap: 2px; border: 1px solid #d6e1e7; border-radius: 9px; background: #f6fafc; padding: 10px 12px; color: var(--muted); font-size: .72rem; }
+    .smartbank-count-strip strong { color: var(--navy); font-size: 1.05rem; }
+    .smartphrase-filter-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+    .smartphrase-filter-grid label { display: grid; gap: 6px; color: var(--navy); font-weight: 750; font-size: .8rem; }
+    .smartphrase-filter-grid input, .smartphrase-filter-grid select { width: 100%; border: 1px solid #b9c8d2; border-radius: 8px; background: #fff; color: var(--ink); padding: 9px 10px; font: inherit; }
+    .smartphrase-result-toolbar { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+    .smartphrase-result-toolbar p { margin: 0; color: var(--muted); }
+    .smartphrase-result-toolbar button { border: 1px solid #9eb5c4; border-radius: 8px; background: #fff; color: var(--navy); padding: 8px 11px; font-weight: 800; cursor: pointer; }
+    .smartbank-results { display: grid; gap: 8px; }
+    .smartbank-collection, .smartbank-category, .smartbank-row { overflow: hidden; border: 1px solid #d4e0e6; border-radius: 9px; background: #fff; }
+    .smartbank-collection > summary, .smartbank-category > summary, .smartbank-row > summary { display: flex; justify-content: space-between; gap: 10px; align-items: center; cursor: pointer; padding: 10px 12px; color: var(--navy); font-weight: 800; }
+    .smartbank-category > summary { background: #f6fafb; font-weight: 700; }
+    .smartbank-collection > summary { background: #eef5f8; font-weight: 900; }
+    .smartbank-rows { display: grid; gap: 6px; padding: 8px; }
+    .smartbank-row > summary span { display: grid; gap: 2px; }
+    .smartbank-row > summary small { color: var(--muted); }
+    .smartbank-row > div { padding: 0 12px 12px; }
+    .smartbank-row pre { max-height: 320px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid #dbe5ea; border-radius: 8px; background: #f8fafb; padding: 11px; font: 500 .8rem/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .smartbank-row button { border: 1px solid var(--blue); border-radius: 8px; background: var(--blue); color: #fff; padding: 8px 11px; font-weight: 800; cursor: pointer; }
+    .smartobject-detail-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+    .smartobject-detail-grid dt { color: #71818b; font-size: .66rem; font-weight: 850; text-transform: uppercase; }
+    .smartobject-detail-grid dd { margin: 2px 0 0; }
+    #referenceBankPanel { margin-top: 18px; border: 1px solid #d2dee5; border-radius: 12px; background: #fff; overflow: hidden; }
+    #referenceBankPanel > summary { cursor: pointer; padding: 13px 16px; color: var(--navy); font-weight: 850; background: #f8fafb; }
+    #referenceBankPanel > div { padding: 16px; }
+
+    @media (max-width: 1080px) {
+      .smarttool-layout { grid-template-columns: 1fr; }
+      .smarttool-output-column { position: static; }
+      .smarttool-definition-strip, .smartphrase-filter-grid, .smartbank-count-strip, .smarttool-help { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Epic SmartObject Builder</h1>
+      <p>Assemble Epic SmartPhrases from connected blocks — free text, SmartLinks, SmartLists, and wildcards — the way visual coding tools teach with modules. Then copy the assembled body into Epic.</p>
+    </div>
+    <div class="brand-badge">
+      <a href="https://ppeck.me" target="_blank" rel="noreferrer">Paul Peck</a>
+      <small>ppeck.me</small>
+    </div>
+  </header>
+
+  <main>
+    <div class="bank-loader">
+      <strong>Block library:</strong>
+      <span id="libraryOrigin">Built-in generic Epic starter set</span>
+      <button type="button" data-load-bank>Load reference bank (JSON)…</button>
+      <button type="button" data-clear-bank hidden>Remove loaded bank</button>
+      <input type="file" accept="application/json,.json" data-bank-file hidden>
+      <span class="bank-status" data-bank-status></span>
+    </div>
+
+    <div id="builderMount"></div>
+
+    <details id="referenceBankPanel" hidden>
+      <summary>Searchable reference bank</summary>
+      <div id="referenceBankMount"></div>
+    </details>
+  </main>
+
+  <footer class="app-footer">
+    <p>This tool runs entirely in your browser. Nothing is uploaded, published, or connected to Epic. Drafts are saved in this browser's local storage only. SmartLink and SmartList availability and behavior differ by organization — always create and test every draft in your approved Epic training or test environment before clinical use. Do not enter patient information.</p>
+    <p>Built by <a href="https://ppeck.me" target="_blank" rel="noreferrer">Paul Peck — ppeck.me</a>.</p>
+  </footer>
+
+  <script>
+  "use strict";
+  (function () {
+    // ---------- small utilities ----------
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, (ch) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[ch]));
+    }
+    function groupBy(items, keyFn) { const groups = new Map(); items.forEach((item) => { const key = keyFn(item); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(item); }); return groups; }
+    function formatCount(value) { return Number(value || 0).toLocaleString("en-US"); }
+    function normalizeName(value) { return String(value || "").trim().replace(/^\./, "").replace(/[^A-Za-z0-9_]/g, "").toUpperCase(); }
+    function extractObservedSmartListTokens(value) { return String(value || "").match(/\{[^{}\r\n:]{1,80}:\d{1,12}\}/g) || []; }
+    function slug(value) { return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80); }
+
+    const EVIDENCE = {
+      exact: {label: "Exact token", note: "Author-controlled or a standard Epic system token; insert as written."},
+      observed: {label: "Verify locally", note: "Common token — confirm it is enabled and behaves as expected in your Epic."},
+      catalog: {label: "Catalog reference", note: "Named in a loaded reference bank; pasteable syntax and local availability are not confirmed."},
+      creation: {label: "Needs creation", note: "A planned element that must be created and inserted in Epic."}
+    };
+
+    const DRAFT_SCHEMA = "epic-smartobject-builder";
+    const DRAFT_VERSION = 1;
+    const DRAFT_STORAGE_KEY = "epic-smartobject-builder.v1";
+
+    const RESEARCH_LINKS = [
+      {label: "UI Health Care — Epic SmartTools overview", href: "https://epicsupport.sites.uiowa.edu/epic-resources/smarttools"},
+      {label: "OHSU — SmartTools quick guide (PDF)", href: "https://www.ohsu.edu/sites/default/files/2019-08/SmartTools%20Quick%20Guide%2001-14-18.pdf"}
+    ];
+
+    // ---------- built-in generic starter library ----------
+    // Availability of any SmartLink varies by organization; universal author/system tokens
+    // are marked "exact", clinical-data tokens are marked "observed" (verify locally).
+    const BUILTIN_MODULES = [
+      {id: "free-text", kind: "free-text", evidence: "exact", label: "Free text", description: "User-authored text inserted exactly as written.", category: "Basics", subCategory: "Text and placeholders", token: ""},
+      {id: "wildcard", kind: "wildcard", evidence: "exact", label: "Free-text wildcard", description: "Standard Epic wildcard ***; complete it during documentation.", category: "Basics", subCategory: "Text and placeholders", token: "***"},
+      {id: "personal-placeholder", kind: "smartlink", evidence: "creation", label: "Personal-info placeholder", description: "Replace with your own approved name/credentials — never patient information.", category: "Basics", subCategory: "Text and placeholders", token: "[INSERT YOUR NAME]", source: "Author placeholder"},
+      {id: "custom-smartlist", kind: "custom-smartlist", evidence: "creation", label: "New SmartList plan", description: "Define choices and settings, then create and insert the list in Epic.", category: "Basics", subCategory: "Build a new SmartList", token: ""},
+      {id: "nested-smartphrase", kind: "smartlink", evidence: "observed", label: "Insert another SmartPhrase (@@)", description: "Nest an existing SmartPhrase by name using Epic's @@ tool; replace with the target name.", category: "Basics", subCategory: "Nesting", token: "@@", source: "Standard Epic nesting"},
+
+      link("@NAME@", "Patient full name", "Patient identifiers", "exact"),
+      link("@FNAME@", "Patient first name", "Patient identifiers", "exact"),
+      link("@LNAME@", "Patient last name", "Patient identifiers", "exact"),
+      link("@DOB@", "Date of birth", "Patient identifiers", "exact"),
+      link("@AGE@", "Patient age", "Patient identifiers", "exact"),
+      link("@SEX@", "Sex / gender", "Patient identifiers", "exact"),
+      link("@MRN@", "Medical record number", "Patient identifiers", "observed"),
+      link("@PRONOUN@", "Patient pronouns", "Patient identifiers", "observed"),
+
+      link("@TD@", "Today's date", "Encounter & author", "exact"),
+      link("@NOW@", "Current date and time", "Encounter & author", "exact"),
+      link("@ME@", "Current user (your name)", "Encounter & author", "exact"),
+      link("@MYNAME@", "Logged-in user name", "Encounter & author", "observed"),
+      link("@DOS@", "Date of service", "Encounter & author", "observed"),
+      link("@DEPT@", "Department / clinic", "Encounter & author", "observed"),
+      link("@LOS@", "Length of stay (days)", "Encounter & author", "observed"),
+      link("@PCP@", "Primary care provider", "Encounter & author", "observed"),
+
+      link("@DIAG@", "Encounter diagnoses", "Clinical data", "observed"),
+      link("@PROB@", "Problem list", "Clinical data", "observed"),
+      link("@CMED@", "Current medications", "Clinical data", "observed"),
+      link("@ALG@", "Allergies", "Clinical data", "observed"),
+      link("@VS@", "Vital signs", "Clinical data", "observed"),
+      link("@VSRANGES@", "Vital-sign ranges (last 24h)", "Clinical data", "observed"),
+      link("@LABRECENT@", "Recent lab results", "Clinical data", "observed"),
+      link("@RESULTS@", "Results (labs/studies)", "Clinical data", "observed"),
+      link("@IMPPLAN@", "Assessment and plan", "Clinical data", "observed"),
+      link("@PMH@", "Past medical history", "Clinical data", "observed"),
+      link("@PSH@", "Past surgical history", "Clinical data", "observed"),
+      link("@FH@", "Family history", "Clinical data", "observed"),
+      link("@SH@", "Social history", "Clinical data", "observed"),
+      link("@ROS@", "Review of systems", "Clinical data", "observed"),
+      link("@PE@", "Physical exam", "Clinical data", "observed")
+    ];
+
+    function link(token, label, subCategory, evidence) {
+      return {id: `builtin-link-${slug(token)}`, kind: "smartlink", evidence, label, token, description: `${label}. Standard Epic SmartLink token; confirm it is enabled in your Epic.`, category: "Standard SmartLinks", subCategory, source: "Generic Epic starter set"};
+    }
+
+    // ---------- library assembly (built-ins + optional loaded bank) ----------
+    let phraseBank = null;
+    let objectBank = null;
+
+    function buildModuleLibrary() {
+      const modules = BUILTIN_MODULES.map((item) => ({...item}));
+      const seenLinks = new Set(modules.filter((m) => m.kind === "smartlink" && m.token && /^@.*@$/.test(m.token)).map((m) => m.token.toUpperCase()));
+      const seenLists = new Set();
+      if (phraseBank && Array.isArray(phraseBank.entries)) {
+        phraseBank.entries.forEach((entry) => {
+          const body = String(entry.body || "");
+          for (const t of body.match(/@[A-Za-z0-9_().,:=-]+@/g) || []) {
+            if (seenLinks.has(t.toUpperCase())) continue;
+            seenLinks.add(t.toUpperCase());
+            modules.push({id: `observed-link-${slug(t)}`, kind: "smartlink", evidence: "observed", label: t, token: t, description: "Observed in the loaded reference bank; confirm meaning and availability with Insert SmartLink.", category: "Observed SmartLink tokens", subCategory: "From loaded bank", source: `Observed in ${entry.displayIdentifier || entry.identifier || "source"}`});
+          }
+          for (const t of extractObservedSmartListTokens(body)) {
+            if (seenLists.has(t.toLowerCase())) continue;
+            seenLists.add(t.toLowerCase());
+            modules.push({id: `observed-list-${slug(t)}`, kind: "existing-smartlist", evidence: "observed", label: t.replace(/[{}]/g, "").split(":")[0], token: t, description: "Observed SmartList syntax from the loaded bank; confirm its current behavior.", category: "Observed SmartList tokens", subCategory: "From loaded bank", source: `Observed in ${entry.displayIdentifier || entry.identifier || "source"}`});
+          }
+          if (body.trim()) {
+            modules.push({id: `template-${entry.id || slug(entry.identifier || entry.displayIdentifier || Math.random())}`, kind: "template", evidence: "observed", label: entry.displayIdentifier || entry.identifier || "Template", body, description: `${entry.entryType || "template"} · requirement ${(entry.requirementStatus || "not established").toLowerCase()}.`, category: "Reference SmartPhrase templates", subCategory: entry.practice || "General", source: `Source pages ${(entry.sourcePages || []).join(", ") || "not recorded"}`, sourcePages: entry.sourcePages || [], specialty: entry.practice || "", privacyNotice: entry.privacyNotice || "No patient information belongs in this draft.", requirementStatus: entry.requirementStatus || "Not established"});
+          }
+        });
+      }
+      if (objectBank && Array.isArray(objectBank.entries)) {
+        objectBank.entries.filter((entry) => ["SmartLink", "SmartLists"].includes(entry.objectType)).forEach((entry) => {
+          const isLink = entry.objectType === "SmartLink";
+          modules.push({id: `catalog-${entry.id || slug(entry.name)}`, kind: isLink ? "catalog-smartlink" : "catalog-smartlist", evidence: "catalog", label: entry.name, token: `[[INSERT ${isLink ? "SMARTLINK" : "SMARTLIST"} IN EPIC: ${entry.name}]]`, description: `${entry.originEvidence || "Catalog reference"}; ID ${entry.objectId || "not printed"}.`, category: isLink ? "Reference SmartLink catalog" : "Reference SmartList catalog", subCategory: `${entry.originEvidence || "Catalog"} · ${entry.alphabetGroup || ""}`, source: `Reference bank`});
+        });
+      }
+      return modules.map((item) => ({...item, searchText: `${item.label} ${item.token || ""} ${item.description} ${item.category} ${item.subCategory} ${item.source || ""}`.toLowerCase()}));
+    }
+
+    // ---------- builder view ----------
+    function renderSmartToolBuilder() {
+      return `
+        <section class="smarttool-builder" data-smarttool-builder>
+          <div class="smarttool-safety-callout"><strong>Draft and test before use in Epic</strong><p>This workspace does not connect to or publish in Epic. SmartLink and SmartList availability and behavior differ by organization. Use Epic's Insert SmartLink and Insert SmartList tools, then test every draft in the approved training or test workflow. Do not enter patient information; this draft is saved locally in this browser.</p></div>
+          <div class="smarttool-definition-strip" aria-label="Block evidence states">${Object.values(EVIDENCE).map((state) => `<span><strong>${escapeHtml(state.label)}</strong>${escapeHtml(state.note)}</span>`).join("")}</div>
+          <div class="smarttool-draft-actions" aria-label="Draft controls"><button type="button" data-smarttool-undo>Undo</button><button type="button" data-smarttool-redo>Redo</button><button type="button" data-smarttool-export>Export draft JSON</button><button type="button" data-smarttool-import>Import draft JSON</button><button type="button" data-smarttool-reset>Reset draft</button><input type="file" accept="application/json,.json" data-smarttool-import-file hidden></div>
+          <div class="smarttool-layout">
+            <aside class="smarttool-library" aria-label="Block library">
+              <header><span class="smarttool-step">1</span><div><h3>Block library</h3><p>Free text, wildcards, SmartLinks, SmartLists, and (when loaded) reference blocks.</p></div></header>
+              <button class="smarttool-library-item pinned" type="button" draggable="true" data-library-id="free-text">${renderLibraryItemContents({kind: "free-text", label: "Free text", description: "Always available at the top", evidence: "exact"})}</button>
+              <div class="smarttool-library-filters"><label>Search blocks<input type="search" data-smarttool-library-search placeholder="NAME, medication, @TD@…"></label><label>Category<select data-smarttool-library-category><option value="">All categories</option></select></label><label class="smarttool-catalog-toggle"><input type="checkbox" data-smarttool-include-catalog> Include catalog references</label></div>
+              <p class="placeholder-note" data-smarttool-library-summary></p>
+              <div class="smarttool-library-results" data-smarttool-library-results></div>
+            </aside>
+            <section class="smarttool-canvas-column">
+              <header><span class="smarttool-step">2</span><div><h3>Connected block canvas</h3><p>Stack blocks in the order Epic should read them.</p></div></header>
+              <label class="smarttool-phrase-name">SmartPhrase name <span>.</span><input data-smarttool-phrase-name placeholder="MYFOLLOWUP" maxlength="64"></label>
+              <div class="smarttool-canvas" data-smarttool-canvas aria-label="SmartPhrase connected block canvas"></div>
+              <button class="smarttool-add-text" type="button" data-add-free-text>+ Add free-text block</button>
+            </section>
+            <aside class="smarttool-output-column">
+              <header><span class="smarttool-step">3</span><div><h3>SmartPhrase draft</h3><p>Drafting checks only; this is not Epic validation.</p></div></header>
+              <section class="smarttool-preflight" data-smarttool-preflight aria-live="polite"><strong data-smarttool-preflight-status>Draft incomplete</strong><ul data-smarttool-preflight-list></ul></section>
+              <label>SmartPhrase name<input data-smarttool-name-output readonly></label><button type="button" data-copy-smarttool-name>Copy SmartPhrase name</button>
+              <label>Epic body<textarea data-smarttool-body-output rows="12" readonly></textarea></label><button type="button" data-copy-smarttool-body>Copy Epic body</button>
+              <label>Build notes<textarea data-smarttool-notes-output rows="12" readonly></textarea></label><button type="button" class="secondary" data-copy-smarttool-notes>Copy build notes</button>
+              <p data-smarttool-copy-status aria-live="polite"></p>
+            </aside>
+          </div>
+          <section class="smarttool-help"><div><h3>Finish in Epic</h3><ol><li>Create or open the named SmartPhrase in SmartPhrase Manager.</li><li>Paste only the Epic body.</li><li>Create planned SmartLists, then use Insert SmartList for each planning placeholder.</li><li>Use Insert SmartLink for catalog references and confirm observed tokens locally.</li><li>Complete wildcards and personal placeholders, then test formatting, selections, and pulled chart data.</li></ol></div><div><h3>How the blocks work</h3><p>Each block emits one piece of the SmartPhrase body. Free text and templates are inserted verbatim; SmartLink blocks emit their <code>@TOKEN@</code>; new-SmartList blocks emit a build placeholder you replace with Epic's Insert SmartList. Drag from the library into the canvas, then reorder with drag handles or the arrow buttons.</p><ul>${RESEARCH_LINKS.map((item) => `<li><a href="${escapeHtml(item.href)}" target="_blank" rel="noreferrer">${escapeHtml(item.label)}</a></li>`).join("")}</ul></div></section>
+        </section>`;
+    }
+
+    function renderLibraryGroups(modules, searching) {
+      if (!modules.length) return `<p class="placeholder-note">No blocks match this search.</p>`;
+      return [...groupBy(modules, (item) => item.category).entries()].map(([category, categoryModules]) => `<details class="smarttool-library-category" ${searching ? "open" : ""}><summary><span>${escapeHtml(category)}</span><b>${formatCount(categoryModules.length)}</b></summary><div>${[...groupBy(categoryModules, (item) => item.subCategory || "Other").entries()].map(([subCategory, subModules]) => { const visible = subModules.slice(0, searching ? 60 : 18); return `<details class="smarttool-library-subcategory" ${searching ? "open" : ""}><summary><span>${escapeHtml(subCategory)}</span><b>${formatCount(subModules.length)}</b></summary><div>${visible.map(renderLibraryItem).join("")}${subModules.length > visible.length ? `<p class="smartbank-more">${formatCount(subModules.length - visible.length)} more — search within this category.</p>` : ""}</div></details>`; }).join("")}</div></details>`).join("");
+    }
+
+    function renderLibraryItem(item) {
+      if (item.kind === "template") return `<article class="smarttool-library-item smarttool-template-item ${escapeHtml(item.kind)}" draggable="true" data-library-id="${escapeHtml(item.id)}">${renderLibraryItemContents(item)}<div class="smarttool-template-actions"><button type="button" data-template-action="start" data-library-id="${escapeHtml(item.id)}">Start new draft from template</button><button type="button" data-template-action="insert" data-library-id="${escapeHtml(item.id)}">Insert into current draft</button></div></article>`;
+      return `<button class="smarttool-library-item ${escapeHtml(item.kind)}" type="button" draggable="true" data-library-id="${escapeHtml(item.id)}">${renderLibraryItemContents(item)}</button>`;
+    }
+
+    function renderLibraryItemContents(item) {
+      const icon = ["smartlink", "catalog-smartlink"].includes(item.kind) ? "@" : (item.kind || "").includes("smartlist") ? "☷" : item.kind === "template" ? "." : item.kind === "free-text" ? "T" : "✱";
+      const evidence = EVIDENCE[item.evidence] || EVIDENCE.observed;
+      return `<span class="node-icon">${escapeHtml(icon)}</span><span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.description)}</small><span class="smarttool-evidence-badge" data-evidence="${escapeHtml(item.evidence)}">${escapeHtml(evidence.label)}</span></span>${item.kind === "template" ? "" : "<b>Add</b>"}`;
+    }
+
+    function renderCanvasNode(node, index, count) {
+      const typeLabel = {"free-text": "Free text", wildcard: "Wildcard", smartlink: "SmartLink", "catalog-smartlink": "SmartLink planning block", "existing-smartlist": "SmartList", "catalog-smartlist": "SmartList planning block", "custom-smartlist": "New SmartList", template: "Reference template"}[node.kind] || node.kind;
+      const evidence = EVIDENCE[node.evidence] || EVIDENCE.observed;
+      return `<article class="smarttool-node ${escapeHtml(node.kind)}" draggable="true" data-tool-node="${escapeHtml(node.uid)}" data-evidence="${escapeHtml(node.evidence)}"><header><span class="smarttool-drag-handle" title="Drag to reorder" aria-hidden="true">⠿</span><div><span>${escapeHtml(typeLabel)}</span><strong>${escapeHtml(node.label)}</strong><b class="smarttool-evidence-badge" data-evidence="${escapeHtml(node.evidence)}">${escapeHtml(evidence.label)}</b></div><div class="smarttool-node-actions"><button type="button" data-node-action="up" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(node.label)} up">↑</button><button type="button" data-node-action="down" ${index === count - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(node.label)} down">↓</button><button type="button" data-node-action="duplicate" title="Duplicate block" aria-label="Duplicate ${escapeHtml(node.label)} block">⧉</button><button type="button" data-node-action="remove" title="Remove block" aria-label="Remove ${escapeHtml(node.label)} block">×</button></div></header><div class="smarttool-node-body">${renderNodeEditor(node)}<p class="smarttool-evidence-note"><strong>${escapeHtml(evidence.label)}:</strong> ${escapeHtml(evidence.note)}</p></div></article>`;
+    }
+
+    function renderNodeEditor(node) {
+      if (node.kind === "free-text") return `<label><span>Text</span><textarea data-node-field="text" rows="2" placeholder="Type text, headings, instructions, or line breaks…">${escapeHtml(node.text)}</textarea></label>`;
+      if (node.kind === "custom-smartlist") return `<details class="smarttool-block-editor" open><summary>Configure choices</summary><div class="smarttool-list-editor"><label>Name<input data-node-field="listName" value="${escapeHtml(node.listName)}" placeholder="FOLLOWUP_OPTIONS"></label><label>Selection<select data-node-field="multiple"><option ${node.multiple === "Single selection" ? "selected" : ""}>Single selection</option><option ${node.multiple === "Multiple selections" ? "selected" : ""}>Multiple selections</option><option ${node.multiple === "Confirm in Epic" ? "selected" : ""}>Confirm in Epic</option></select></label><label>Choices<textarea data-node-field="choices" rows="3" placeholder="Choice one\nChoice two\nOther">${escapeHtml(node.choices)}</textarea></label><label>Default<input data-node-field="defaultChoice" value="${escapeHtml(node.defaultChoice)}" placeholder="Optional"></label></div></details>`;
+      if (node.kind === "template") return `<details class="smarttool-block-editor"><summary>Edit reference template</summary><p>${escapeHtml(node.description)}</p><textarea data-node-field="text" rows="5">${escapeHtml(node.text)}</textarea><small>${escapeHtml(node.privacyNotice || "No patient information belongs in this draft.")}</small></details>`;
+      return `<code>${escapeHtml(node.token)}</code><span>${escapeHtml(node.description)}</span><small>${escapeHtml(node.source || "")}</small>`;
+    }
+
+    // ---------- draft evaluation ----------
+    function evaluateSmartPhraseDraft(opts) {
+      const {phraseName = "", nodes = []} = opts || {};
+      const normalized = normalizeName(phraseName);
+      const suppliedName = String(phraseName || "").trim();
+      const canonicalInput = suppliedName.replace(/^\./, "").toUpperCase();
+      const body = nodes.map(nodeOutput).filter((value) => value !== "").join("\n");
+      const issues = [];
+      const add = (severity, label, message) => issues.push({severity, label, message});
+      if (!normalized) add("error", "Missing SmartPhrase name.", "Enter a name before assembly.");
+      if (suppliedName && (canonicalInput !== normalized || /[^A-Za-z0-9_]/.test(canonicalInput))) add("error", "Name normalized.", `Unsupported characters were removed; review .${normalized || "[ENTER_NAME]"}.`);
+      const firstBlockBySignature = new Map();
+      nodes.forEach((node, index) => {
+        if (node.kind === "free-text" && !node.text.trim()) add("error", "Empty free-text block.", `Block ${index + 1} has no content.`);
+        if (node.kind === "custom-smartlist") {
+          const choices = choiceLines(node);
+          if (!normalizeName(node.listName)) add("error", "Unnamed custom SmartList.", `Block ${index + 1} needs a name.`);
+          if (!choices.length) add("error", "Custom SmartList has no choices.", `Block ${index + 1} needs at least one choice.`);
+          if (node.defaultChoice.trim() && !choices.includes(node.defaultChoice.trim())) add("error", "Invalid SmartList default.", `“${node.defaultChoice.trim()}” is not present in block ${index + 1}'s choices.`);
+        }
+        if (node.evidence === "catalog") add("warning", "Catalog reference.", `${node.label} requires Insert SmartLink or Insert SmartList in Epic.`);
+        if (node.evidence === "observed") add("warning", "Verify locally.", `${node.label} should be confirmed in your Epic.`);
+        if (node.evidence === "creation") add("warning", "Needs creation.", `${node.label} must be created and inserted in Epic.`);
+        if (node.evidence === "exact") add("info", "Exact token.", `${node.label} is inserted exactly as supplied or authored.`);
+        if (node.kind === "wildcard") add("warning", "Wildcard remains.", `Block ${index + 1} contains ***.`);
+        const signature = nodeSignature(node);
+        if (firstBlockBySignature.has(signature)) add("warning", "Duplicate blocks.", `Blocks ${firstBlockBySignature.get(signature) + 1} and ${index + 1} produce the same content.`);
+        else firstBlockBySignature.set(signature, index);
+      });
+      if (!body.trim()) add("error", "Empty Epic body.", "Add meaningful content before assembly.");
+      if (/\[(?:ENTER_NAME|ADD(?:\s[^\]]*)?)\]/i.test(body)) add("error", "Incomplete placeholder.", "Replace remaining [ENTER_NAME] or [ADD …] placeholders.");
+      if (/\[\[INSERT\s[^\]]+\]\]/i.test(body)) add("warning", "Planning placeholder remains.", "Use Epic's Insert SmartLink or Insert SmartList tool for each [[INSERT …]] placeholder.");
+      if (/\[(?:INSERT\s+YOUR|YOUR\s+(?:NAME|CALLBACK|PHONE|CREDENTIAL)|PERSONAL)[^\]]*\]/i.test(body)) add("warning", "Personal-information placeholder.", "Replace the placeholder with approved user information; never enter patient information here.");
+      const errors = issues.filter((issue) => issue.severity === "error");
+      const warnings = issues.filter((issue) => issue.severity === "warning");
+      const status = errors.length ? "Draft incomplete" : warnings.length ? "Ready for Epic assembly" : "Ready for Epic testing";
+      const stateKey = errors.length ? "incomplete" : warnings.length ? "assembly" : "testing";
+      const notes = buildNotes(nodes, body, issues);
+      return {name: `.${normalized || "[ENTER_NAME]"}`, body, buildNotes: notes, issues, status, stateKey};
+    }
+
+    function buildNotes(nodes, body, issues) {
+      const lines = [];
+      nodes.forEach((node) => {
+        const state = EVIDENCE[node.evidence] || EVIDENCE.observed;
+        if (node.evidence === "catalog") lines.push(`[${state.label}] ${node.label} — use ${node.kind.includes("smartlist") ? "Insert SmartList" : "Insert SmartLink"} in Epic; pasteable syntax and local availability are not confirmed.`);
+        if (node.evidence === "observed") lines.push(`[${state.label}] ${node.label} — ${node.source || "verify in Epic"}; confirm locally.`);
+        if (node.kind === "custom-smartlist") lines.push(`[${state.label}] ${renderListWorksheet(node)}`);
+        if (node.kind === "wildcard") lines.push(`[${state.label}] Wildcard *** remains for completion during documentation.`);
+        else if (node.evidence === "exact") lines.push(`[${state.label}] ${node.label} — inserted exactly as supplied or authored.`);
+      });
+      if (/\[(?:INSERT\s+YOUR|YOUR\s+(?:NAME|CALLBACK|PHONE|CREDENTIAL)|PERSONAL)[^\]]*\]/i.test(body)) lines.push("[Needs creation] Personal-information replacement placeholder remains. Use only approved user information; never patient information.");
+      issues.filter((issue) => issue.severity === "error").forEach((issue) => lines.push(`[Preflight] ${issue.label} ${issue.message}`));
+      lines.push("[Governance] This worksheet does not validate, publish, or approve content in Epic. Confirm organization-specific availability and test the Epic body in the approved training or test workflow.");
+      return lines.join("\n\n");
+    }
+
+    function nodeOutput(node) {
+      if (["free-text", "template"].includes(node.kind)) return (node.text || "").trimEnd();
+      if (node.kind === "custom-smartlist") return `[[INSERT SMARTLIST IN EPIC: ${normalizeName(node.listName) || "UNNAMED_LIST"}]]`;
+      return node.token || "";
+    }
+    function choiceLines(node) { return String(node.choices || "").split(/\r?\n/).map((value) => value.trim()).filter(Boolean); }
+    function nodeSignature(node) { return `${node.kind}|${nodeOutput(node).trim()}`; }
+    function hasMeaningfulMaterial(nodes) { return nodes.some((node) => node.kind !== "free-text" || node.text.trim()); }
+    function renderListWorksheet(node) {
+      const name = normalizeName(node.listName) || "UNNAMED_LIST";
+      const choices = choiceLines(node);
+      return `SmartList ${name}\nSelection: ${node.multiple}\nDefault: ${node.defaultChoice.trim() || "None specified"}\nChoices:\n${choices.length ? choices.map((choice, index) => `${index + 1}. ${choice}`).join("\n") : "[ADD CHOICES]"}\nAfter creation, use Insert SmartList in Epic to replace the planning placeholder.`;
+    }
+
+    // ---------- draft persistence ----------
+    function loadStoredDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) return null;
+        return {draft: validateDraftPayload(JSON.parse(raw))};
+      } catch (error) { return {error: `Saved draft was not loaded: ${error.message}`}; }
+    }
+    function validateDraftPayload(payload) {
+      if (!payload || payload.schema !== DRAFT_SCHEMA) throw new Error("unrecognized draft schema");
+      if (payload.version !== DRAFT_VERSION) throw new Error(`unsupported draft version ${payload.version == null ? "missing" : payload.version}`);
+      const draft = payload.draft;
+      if (!draft || typeof draft.phraseName !== "string" || !Array.isArray(draft.nodes)) throw new Error("draft data is malformed");
+      if (draft.nodes.some((node) => !node || typeof node !== "object" || typeof node.uid !== "string" || typeof node.kind !== "string" || !EVIDENCE[node.evidence])) throw new Error("one or more blocks are malformed or use an unsupported evidence state");
+      return {serial: Number(draft.serial) || 0, phraseName: draft.phraseName, nodes: draft.nodes.map((node) => ({...node}))};
+    }
+    function exportDraft(draft) {
+      const payload = {schema: DRAFT_SCHEMA, version: DRAFT_VERSION, exportedAt: new Date().toISOString(), warning: "No patient information belongs in this draft.", draft};
+      downloadJson(payload, "epic-smartobject-draft.json");
+    }
+    function downloadJson(payload, filename) {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url; anchor.download = filename; anchor.click(); URL.revokeObjectURL(url);
+    }
+    async function copyBuilderText(value, root) {
+      const status = root.querySelector("[data-smarttool-copy-status]");
+      try { await navigator.clipboard.writeText(String(value || "")); if (status) status.textContent = "Copied to clipboard."; }
+      catch { if (status) status.textContent = "Clipboard access was unavailable. Select and copy the output manually."; }
+    }
+
+    // ---------- builder controller (re-buildable when a bank loads) ----------
+    function attachSmartToolBuilder(root) {
+      let library = buildModuleLibrary();
+      let libraryById = new Map(library.map((item) => [item.id, item]));
+      const libraryResults = root.querySelector("[data-smarttool-library-results]");
+      const librarySummary = root.querySelector("[data-smarttool-library-summary]");
+      const search = root.querySelector("[data-smarttool-library-search]");
+      const category = root.querySelector("[data-smarttool-library-category]");
+      const includeCatalog = root.querySelector("[data-smarttool-include-catalog]");
+      const canvas = root.querySelector("[data-smarttool-canvas]");
+      const phraseName = root.querySelector("[data-smarttool-phrase-name]");
+      const status = root.querySelector("[data-smarttool-copy-status]");
+      const stored = loadStoredDraft();
+      let serial = (stored && stored.draft && stored.draft.serial) || 0;
+      let nodes = [];
+      let undoStack = [];
+      let redoStack = [];
+
+      const createNode = (module) => ({
+        uid: `tool-node-${++serial}`, moduleId: module.id, kind: module.kind, evidence: module.evidence,
+        label: module.label, token: module.token || "", description: module.description || "", source: module.source || "",
+        text: module.kind === "template" ? module.body : "", listName: "", choices: "", defaultChoice: "", multiple: "Single selection",
+        sourcePages: module.sourcePages || [], specialty: module.specialty || "", privacyNotice: module.privacyNotice || "", requirementStatus: module.requirementStatus || ""
+      });
+      if (stored && stored.draft) {
+        phraseName.value = stored.draft.phraseName || "";
+        nodes = stored.draft.nodes.map((node) => ({...node}));
+      } else {
+        nodes = [createNode(libraryById.get("free-text"))];
+        if (stored && stored.error) status.textContent = stored.error;
+      }
+      let lastPhraseName = phraseName.value;
+
+      const snapshot = () => ({serial, phraseName: phraseName.value, nodes: nodes.map((node) => ({...node}))});
+      const restore = (draft) => { serial = Number(draft.serial) || 0; phraseName.value = draft.phraseName || ""; lastPhraseName = phraseName.value; nodes = draft.nodes.map((node) => ({...node})); renderCanvas(); };
+      const recordHistory = () => { undoStack.push(snapshot()); if (undoStack.length > 100) undoStack.shift(); redoStack = []; syncHistoryButtons(); };
+      const persistDraft = () => {
+        try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({schema: DRAFT_SCHEMA, version: DRAFT_VERSION, draft: snapshot()})); }
+        catch { status.textContent = "Local draft saving is unavailable in this browser. Export JSON to preserve the draft."; }
+      };
+      const syncHistoryButtons = () => {
+        root.querySelector("[data-smarttool-undo]").disabled = !undoStack.length;
+        root.querySelector("[data-smarttool-redo]").disabled = !redoStack.length;
+      };
+
+      const syncLibraryCategories = () => {
+        const current = category.value;
+        const values = [...new Set(library.filter((item) => includeCatalog.checked || item.evidence !== "catalog").map((item) => item.category).filter(Boolean))].sort();
+        category.innerHTML = `<option value="">All categories</option>${values.map((value) => `<option>${escapeHtml(value)}</option>`).join("")}`;
+        if (values.includes(current)) category.value = current;
+      };
+      const renderLibrary = () => {
+        const query = search.value.trim().toLowerCase();
+        const selectedCategory = category.value;
+        const matches = library.filter((item) => item.id !== "free-text" && (includeCatalog.checked || item.evidence !== "catalog") && (!query || item.searchText.includes(query)) && (!selectedCategory || item.category === selectedCategory));
+        const shown = matches.slice(0, query ? 320 : matches.length);
+        librarySummary.textContent = `${formatCount(matches.length)} blocks match${includeCatalog.checked ? "; catalog references included" : "; catalog references hidden"}${matches.length > shown.length ? "; showing 320 — narrow the search" : ""}.`;
+        libraryResults.innerHTML = renderLibraryGroups(shown, Boolean(query));
+        libraryResults.querySelectorAll("[data-library-id]").forEach(wireLibraryItem);
+        libraryResults.querySelectorAll("[data-template-action]").forEach((button) => button.addEventListener("click", (event) => { event.stopPropagation(); useTemplate(button.dataset.libraryId, button.dataset.templateAction); }));
+      };
+
+      function rebuildLibrary() {
+        library = buildModuleLibrary();
+        libraryById = new Map(library.map((item) => [item.id, item]));
+        syncLibraryCategories();
+        renderLibrary();
+      }
+
+      function addModule(moduleId, beforeUid) {
+        const module = libraryById.get(moduleId);
+        if (!module) return;
+        recordHistory();
+        const node = createNode(module);
+        const at = beforeUid ? nodes.findIndex((item) => item.uid === beforeUid) : -1;
+        if (at >= 0) nodes.splice(at, 0, node); else nodes.push(node);
+        renderCanvas();
+      }
+      function useTemplate(moduleId, action) {
+        const module = libraryById.get(moduleId);
+        if (!module) return;
+        const populated = hasMeaningfulMaterial(nodes);
+        if (action === "start") {
+          if (populated && !window.confirm("Start a new draft from this template and replace the current canvas?")) return;
+          recordHistory();
+          nodes = [createNode(module)];
+          phraseName.value = normalizeName(module.label);
+          lastPhraseName = phraseName.value;
+          status.textContent = "Started a new draft from the template. Review its syntax in Epic.";
+          renderCanvas();
+          return;
+        }
+        if (populated) status.textContent = "Template inserted. This draft may now combine multiple SmartPhrases; review the Epic body carefully.";
+        addModule(moduleId);
+      }
+      function wireLibraryItem(item) {
+        if (item.matches("button[data-library-id]") && !item.dataset.templateAction) item.addEventListener("click", () => addModule(item.dataset.libraryId));
+        item.addEventListener("dragstart", (event) => { event.dataTransfer.effectAllowed = "copy"; event.dataTransfer.setData("text/plain", `library:${item.dataset.libraryId}`); });
+      }
+      wireLibraryItem(root.querySelector('[data-library-id="free-text"]'));
+      search.addEventListener("input", renderLibrary);
+      category.addEventListener("change", renderLibrary);
+      includeCatalog.addEventListener("change", () => { syncLibraryCategories(); renderLibrary(); });
+      canvas.addEventListener("dragover", (event) => { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; });
+      canvas.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const payload = event.dataTransfer.getData("text/plain");
+        const target = event.target.closest && event.target.closest("[data-tool-node]");
+        if (payload.startsWith("library:")) addModule(payload.slice(8), (target && target.dataset.toolNode) || "");
+        if (payload.startsWith("node:")) moveNode(payload.slice(5), (target && target.dataset.toolNode) || "");
+      });
+
+      function moveNode(uid, beforeUid) {
+        if (!uid || uid === beforeUid) return;
+        const from = nodes.findIndex((item) => item.uid === uid);
+        if (from < 0) return;
+        recordHistory();
+        const [node] = nodes.splice(from, 1);
+        const to = beforeUid ? nodes.findIndex((item) => item.uid === beforeUid) : -1;
+        if (to >= 0) nodes.splice(to, 0, node); else nodes.push(node);
+        renderCanvas();
+      }
+      function renderCanvas() {
+        canvas.innerHTML = nodes.length ? nodes.map((node, index) => renderCanvasNode(node, index, nodes.length)).join("") : `<div class="smarttool-empty"><strong>Drop blocks here</strong><span>Start with free text, a token, a wildcard, a planning block, or a template.</span></div>`;
+        canvas.querySelectorAll("[data-tool-node]").forEach((block) => block.addEventListener("dragstart", (event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", `node:${block.dataset.toolNode}`); }));
+        canvas.querySelectorAll("[data-node-action]").forEach((button) => button.addEventListener("click", () => applyNodeAction(button.dataset.nodeAction, button.closest("[data-tool-node]").dataset.toolNode)));
+        canvas.querySelectorAll("input, textarea, select").forEach((field) => field.addEventListener("input", () => updateNode(field)));
+        canvas.querySelectorAll("select").forEach((field) => field.addEventListener("change", () => updateNode(field)));
+        updateOutputs();
+      }
+      function updateNode(field) {
+        const node = nodes.find((item) => item.uid === field.closest("[data-tool-node]").dataset.toolNode);
+        if (!node || node[field.dataset.nodeField] === field.value) return;
+        recordHistory();
+        node[field.dataset.nodeField] = field.value;
+        updateOutputs();
+      }
+      function applyNodeAction(action, uid) {
+        const index = nodes.findIndex((item) => item.uid === uid);
+        if (index < 0) return;
+        recordHistory();
+        if (action === "remove") nodes.splice(index, 1);
+        if (action === "duplicate") nodes.splice(index + 1, 0, {...nodes[index], uid: `tool-node-${++serial}`});
+        if (action === "up" && index > 0) [nodes[index - 1], nodes[index]] = [nodes[index], nodes[index - 1]];
+        if (action === "down" && index < nodes.length - 1) [nodes[index + 1], nodes[index]] = [nodes[index], nodes[index + 1]];
+        renderCanvas();
+      }
+      function updateOutputs() {
+        const evaluation = evaluateSmartPhraseDraft({phraseName: phraseName.value, nodes});
+        root.querySelector("[data-smarttool-name-output]").value = evaluation.name;
+        root.querySelector("[data-smarttool-body-output]").value = evaluation.body;
+        root.querySelector("[data-smarttool-notes-output]").value = evaluation.buildNotes;
+        const preflight = root.querySelector("[data-smarttool-preflight]");
+        preflight.dataset.state = evaluation.stateKey;
+        root.querySelector("[data-smarttool-preflight-status]").textContent = evaluation.status;
+        root.querySelector("[data-smarttool-preflight-list]").innerHTML = evaluation.issues.length ? evaluation.issues.map((issue) => `<li data-severity="${issue.severity}"><strong>${escapeHtml(issue.label)}</strong> ${escapeHtml(issue.message)}</li>`).join("") : `<li><strong>Local drafting checks passed.</strong> Test the draft in the approved Epic training or test workflow.</li>`;
+        persistDraft();
+        syncHistoryButtons();
+      }
+
+      phraseName.addEventListener("input", () => {
+        const nextName = phraseName.value;
+        phraseName.value = lastPhraseName;
+        recordHistory();
+        phraseName.value = nextName;
+        lastPhraseName = nextName;
+        updateOutputs();
+      });
+      root.querySelector("[data-add-free-text]").addEventListener("click", () => addModule("free-text"));
+      root.querySelector("[data-smarttool-undo]").addEventListener("click", () => { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); });
+      root.querySelector("[data-smarttool-redo]").addEventListener("click", () => { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); });
+      root.querySelector("[data-smarttool-reset]").addEventListener("click", () => {
+        if (!window.confirm("Reset the SmartPhrase name and all canvas blocks?")) return;
+        recordHistory(); phraseName.value = ""; lastPhraseName = ""; nodes = [createNode(libraryById.get("free-text"))]; status.textContent = "Draft reset. Undo is available."; renderCanvas();
+      });
+      root.querySelector("[data-smarttool-export]").addEventListener("click", () => exportDraft(snapshot()));
+      const importFile = root.querySelector("[data-smarttool-import-file]");
+      root.querySelector("[data-smarttool-import]").addEventListener("click", () => importFile.click());
+      importFile.addEventListener("change", async () => {
+        const file = importFile.files && importFile.files[0];
+        if (!file) return;
+        try {
+          const payload = JSON.parse(await file.text());
+          const draft = validateDraftPayload(payload);
+          recordHistory(); restore(draft); status.textContent = "Draft imported. Review all content and confirm that it contains no patient information.";
+        } catch (error) { status.textContent = `Import rejected: ${error.message}`; }
+        importFile.value = "";
+      });
+      root.querySelector("[data-copy-smarttool-name]").addEventListener("click", () => copyBuilderText(root.querySelector("[data-smarttool-name-output]").value, root));
+      root.querySelector("[data-copy-smarttool-body]").addEventListener("click", () => copyBuilderText(root.querySelector("[data-smarttool-body-output]").value, root));
+      root.querySelector("[data-copy-smarttool-notes]").addEventListener("click", () => copyBuilderText(root.querySelector("[data-smarttool-notes-output]").value, root));
+      syncLibraryCategories();
+      renderLibrary();
+      renderCanvas();
+
+      return {rebuildLibrary};
+    }
+
+    // ---------- optional reference-bank browser ----------
+    function renderReferenceBank() {
+      if (!phraseBank || !objectBank || !phraseBank.entries || !objectBank.entries) return "";
+      const counts = objectBank.counts || {};
+      return `
+        <section class="smartphrase-bank-page" data-smartphrase-bank>
+          <div class="smartphrase-boundary"><strong>Searchable reference inventory</strong><p>${escapeHtml((phraseBank.guidance && phraseBank.guidance.requirementBoundary) || "Confirm requirement status with your Epic governance owner.")}</p></div>
+          <div class="smartbank-count-strip"><span><strong>${formatCount(counts.total || objectBank.entries.length)}</strong> indexed objects</span><span><strong>${formatCount(phraseBank.entries.length)}</strong> reference SmartPhrases</span><span><strong>${formatCount(counts.SmartLink || objectBank.entries.filter((e) => e.objectType === "SmartLink").length)}</strong> named SmartLinks</span></div>
+          <form class="smartphrase-filter-grid" data-smartphrase-filter>
+            <label>Search name, ID, text, or code<input name="bankQuery" type="search" placeholder="e.g., medication, CMED"></label>
+            <label>Collection<select name="bankCollection" data-bank-collection><option value="">All collections</option><option>Reference SmartPhrases</option><option>SmartLink</option><option>SmartLists</option><option>SmartPhrases</option><option>SmartTexts</option></select></label>
+            <label>Category<select name="bankCategory" data-bank-category><option value="">All categories</option></select></label>
+          </form>
+          <div class="smartphrase-result-toolbar"><p data-smartphrase-summary></p><button type="button" data-clear-smartphrase-filter>Clear filters</button></div>
+          <div class="smartbank-results" data-smartphrase-results></div>
+          <p class="placeholder-note" data-smartphrase-copy-status aria-live="polite"></p>
+        </section>`;
+    }
+
+    function attachReferenceBank(container) {
+      const root = container.querySelector("[data-smartphrase-bank]");
+      if (!root) return;
+      const records = buildBankRecords();
+      const filter = root.querySelector("[data-smartphrase-filter]");
+      const results = root.querySelector("[data-smartphrase-results]");
+      const summary = root.querySelector("[data-smartphrase-summary]");
+      const collection = root.querySelector("[data-bank-collection]");
+      const category = root.querySelector("[data-bank-category]");
+      const syncCategories = () => {
+        const selected = collection.value;
+        const current = category.value;
+        const categories = [...new Set(records.filter((record) => !selected || record.collection === selected).map((record) => record.category))].sort();
+        category.innerHTML = `<option value="">All categories</option>${categories.map((value) => `<option>${escapeHtml(value)}</option>`).join("")}`;
+        if (categories.includes(current)) category.value = current;
+      };
+      const renderResults = () => {
+        const form = new FormData(filter);
+        const query = String(form.get("bankQuery") || "").trim().toLowerCase();
+        const selectedCollection = String(form.get("bankCollection") || "");
+        const selectedCategory = String(form.get("bankCategory") || "");
+        const matches = records.filter((record) => (!query || record.searchText.includes(query)) && (!selectedCollection || record.collection === selectedCollection) && (!selectedCategory || record.category === selectedCategory));
+        const shown = matches.slice(0, query ? 350 : records.length);
+        summary.textContent = `${formatCount(matches.length)} of ${formatCount(records.length)} records match.`;
+        results.innerHTML = renderBankGroups(shown, Boolean(query), matches.length > shown.length);
+        results.querySelectorAll("[data-copy-phrase-id]").forEach((button) => button.addEventListener("click", () => {
+          const entry = phraseBank.entries.find((item) => item.id === button.dataset.copyPhraseId);
+          copyBankText((entry && entry.body) || "", root);
+        }));
+      };
+      filter.addEventListener("input", renderResults);
+      filter.addEventListener("change", (event) => { if (event.target === collection) syncCategories(); renderResults(); });
+      root.querySelector("[data-clear-smartphrase-filter]").addEventListener("click", () => { filter.reset(); syncCategories(); renderResults(); });
+      syncCategories();
+      renderResults();
+    }
+
+    function buildBankRecords() {
+      const local = phraseBank.entries.map((entry) => ({
+        id: entry.id, collection: "Reference SmartPhrases", category: entry.practice || "General", title: entry.displayIdentifier || entry.identifier,
+        subtitle: `${entry.entryType || "template"} · requirement ${(entry.requirementStatus || "not established").toLowerCase()}`, searchText: entry.searchText || `${entry.displayIdentifier || ""} ${entry.body || ""}`.toLowerCase(),
+        recordType: "phrase", entry
+      }));
+      const objects = objectBank.entries.map((entry) => ({
+        id: entry.id, collection: entry.objectType, category: entry.alphabetGroup || "Other", title: entry.name,
+        subtitle: `${entry.originEvidence || ""} · ID ${entry.objectId || "not printed"}`, searchText: entry.searchText || `${entry.name || ""}`.toLowerCase(),
+        recordType: "object", entry
+      }));
+      return [...local, ...objects];
+    }
+    function renderBankGroups(records, searching, truncated) {
+      if (!records.length) return `<p class="placeholder-note">No records match these filters.</p>`;
+      const collections = groupBy(records, (record) => record.collection);
+      const html = [...collections.entries()].map(([collection, collectionRecords]) => {
+        const categories = groupBy(collectionRecords, (record) => record.category);
+        return `<details class="smartbank-collection" ${searching ? "open" : ""}><summary><span>${escapeHtml(collection)}</span><b>${formatCount(collectionRecords.length)}</b></summary><div>${[...categories.entries()].map(([category, categoryRecords]) => {
+          const visible = categoryRecords.slice(0, searching ? 50 : 20);
+          return `<details class="smartbank-category" ${searching ? "open" : ""}><summary><span>${escapeHtml(category)}</span><b>${formatCount(categoryRecords.length)}</b></summary><div class="smartbank-rows">${visible.map(renderBankRow).join("")}${categoryRecords.length > visible.length ? `<p class="smartbank-more">${formatCount(categoryRecords.length - visible.length)} more — search to narrow.</p>` : ""}</div></details>`;
+        }).join("")}</div></details>`;
+      }).join("");
+      return `${html}${truncated ? `<p class="placeholder-note">Broad search limited to 350 records. Add a term or choose a collection.</p>` : ""}`;
+    }
+    function renderBankRow(record) {
+      return `<details class="smartbank-row"><summary><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.subtitle)}</small></span><b>Details</b></summary><div>${renderBankRecordDetail(record)}</div></details>`;
+    }
+    function renderBankRecordDetail(record) {
+      const entry = record.entry;
+      if (record.recordType === "phrase") return `<p><strong>Source pages:</strong> ${(entry.sourcePages || []).map(escapeHtml).join(", ") || "Not recorded"}</p>${entry.privacyNotice ? `<p>${escapeHtml(entry.privacyNotice)}</p>` : ""}<pre>${escapeHtml(entry.body || "")}</pre><button type="button" data-copy-phrase-id="${escapeHtml(entry.id)}">Copy phrase text</button>`;
+      return `<dl class="smartobject-detail-grid"><div><dt>Object type</dt><dd>${escapeHtml(entry.objectType || "")}</dd></div><div><dt>Source pages</dt><dd>${escapeHtml(entry.sourcePages || "Not printed")}</dd></div><div><dt>Occurrence</dt><dd>${formatCount(entry.occurrenceCount)}</dd></div><div><dt>Definition groups</dt><dd>${escapeHtml(entry.definitionGroups || "None printed")}</dd></div></dl>${entry.smartLinkCode ? `<pre>${escapeHtml(entry.smartLinkCode)}</pre>` : ""}`;
+    }
+    async function copyBankText(value, root) {
+      const status = root.querySelector("[data-smartphrase-copy-status]");
+      try { await navigator.clipboard.writeText(String(value || "")); if (status) status.textContent = "Copied to clipboard."; }
+      catch { if (status) status.textContent = "Clipboard access was unavailable. Select and copy manually."; }
+    }
+
+    // ---------- bank loading (optional) ----------
+    function coerceBankPayload(payload) {
+      // Accept {smartPhraseBank, smartObjectBank}, or a single bank object, or {phraseBank, objectBank}.
+      const p = payload || {};
+      const phrase = p.smartPhraseBank || p.phraseBank || (Array.isArray(p.entries) && !p.counts ? p : null);
+      const object = p.smartObjectBank || p.objectBank || (Array.isArray(p.entries) && p.counts ? p : null);
+      if (!phrase && !object) throw new Error("no recognizable smartPhraseBank or smartObjectBank found");
+      // The builder library and browser both expect the pair; supply empty shells if one is missing.
+      const phraseSafe = phrase && Array.isArray(phrase.entries) ? phrase : {guidance: {}, entries: []};
+      const objectSafe = object && Array.isArray(object.entries) ? object : {guidance: {}, counts: {}, entries: []};
+      return {phraseSafe, objectSafe, hadPhrase: Boolean(phrase && phrase.entries), hadObject: Boolean(object && object.entries)};
+    }
+
+    // ---------- init ----------
+    function init() {
+      const builderMount = document.getElementById("builderMount");
+      builderMount.innerHTML = renderSmartToolBuilder();
+      const builderRoot = builderMount.querySelector("[data-smarttool-builder]");
+      const controller = attachSmartToolBuilder(builderRoot);
+
+      const bankPanel = document.getElementById("referenceBankPanel");
+      const bankMount = document.getElementById("referenceBankMount");
+      const bankStatus = document.querySelector("[data-bank-status]");
+      const libraryOrigin = document.getElementById("libraryOrigin");
+      const loadBankBtn = document.querySelector("[data-load-bank]");
+      const clearBankBtn = document.querySelector("[data-clear-bank]");
+      const bankFile = document.querySelector("[data-bank-file]");
+
+      function refreshBankUi(originLabel) {
+        controller.rebuildLibrary();
+        libraryOrigin.textContent = originLabel;
+        const html = renderReferenceBank();
+        if (html) { bankMount.innerHTML = html; attachReferenceBank(bankMount); bankPanel.hidden = false; }
+        else { bankMount.innerHTML = ""; bankPanel.hidden = true; }
+        clearBankBtn.hidden = !(phraseBank || objectBank);
+      }
+
+      loadBankBtn.addEventListener("click", () => bankFile.click());
+      bankFile.addEventListener("change", async () => {
+        const file = bankFile.files && bankFile.files[0];
+        if (!file) return;
+        try {
+          const parsed = JSON.parse(await file.text());
+          const {phraseSafe, objectSafe, hadPhrase, hadObject} = coerceBankPayload(parsed);
+          phraseBank = phraseSafe;
+          objectBank = objectSafe;
+          const bits = [];
+          if (hadPhrase) bits.push(`${formatCount(phraseBank.entries.length)} SmartPhrases`);
+          if (hadObject) bits.push(`${formatCount(objectBank.entries.length)} objects`);
+          bankStatus.textContent = `Loaded ${bits.join(" + ")} from ${file.name}.`;
+          refreshBankUi(`Loaded bank: ${file.name}`);
+        } catch (error) {
+          bankStatus.textContent = `Bank rejected: ${error.message}`;
+        }
+        bankFile.value = "";
+      });
+      clearBankBtn.addEventListener("click", () => {
+        phraseBank = null; objectBank = null;
+        bankStatus.textContent = "Loaded bank removed.";
+        refreshBankUi("Built-in generic Epic starter set");
+      });
+    }
+
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
+  })();
+  </script>
+</body>
+</html>
