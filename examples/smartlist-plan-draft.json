@@ -1,0 +1,30 @@
+{
+  "schema": "epic-smartobject-builder",
+  "version": 1,
+  "warning": "No patient information belongs in this draft.",
+  "draft": {
+    "serial": 2,
+    "phraseName": "FOLLOWUPSTATUS",
+    "nodes": [
+      {
+        "uid": "tool-node-1",
+        "moduleId": "free-text",
+        "kind": "free-text",
+        "evidence": "exact",
+        "label": "Text",
+        "text": "Since the last visit, symptoms are:"
+      },
+      {
+        "uid": "tool-node-2",
+        "moduleId": "custom-smartlist",
+        "kind": "custom-smartlist",
+        "evidence": "creation",
+        "label": "New SmartList",
+        "listName": "FOLLOWUP_STATUS",
+        "choices": "Better\nThe same\nWorse",
+        "defaultChoice": "The same",
+        "multiple": "Single selection"
+      }
+    ]
+  }
+}

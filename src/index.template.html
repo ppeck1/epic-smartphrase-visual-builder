@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Build an Epic SmartPhrase one block at a time, then copy it into Epic for testing.">
+<title>SmartPhrase Builder</title>
+<!-- @styles -->
+</head>
+<body>
+<div class="app" id="app" data-view="build">
+  <header class="topbar">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><span class="brand-name">SmartPhrase <span>Builder</span></span></div>
+    <p class="boundary">Works offline · <b>Not connected to Epic</b> · Don’t enter patient information</p>
+    <div class="top-actions">
+      <span class="save-state" id="saveState" aria-live="polite"></span>
+      <button class="icon-btn" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z)"></button>
+      <button class="icon-btn" id="redoBtn" type="button" aria-label="Redo" title="Redo (Ctrl+Shift+Z)"></button>
+      <span class="divider-v" aria-hidden="true"></span>
+      <button class="btn-quiet" id="helpBtn" type="button" aria-haspopup="dialog">Help</button>
+      <div class="menu-wrap">
+        <button class="btn-quiet" id="moreBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="moreMenu">More</button>
+        <div class="menu" id="moreMenu" role="menu" aria-labelledby="moreBtn" hidden></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="editor-pane" id="editorPane" aria-label="Build your phrase">
+      <div class="sheet" id="sheet">
+        <div class="name-field">
+          <label class="name-label" for="phraseName">Phrase name</label>
+          <div class="name-row"><span class="name-dot" aria-hidden="true">.</span><input class="name-input" id="phraseName" maxlength="64" autocomplete="off" spellcheck="false" placeholder="MYFOLLOWUP" aria-describedby="nameNote"></div>
+          <p class="field-note" id="nameNote" hidden></p>
+        </div>
+        <div class="blocks" id="blocks" aria-label="Blocks in your phrase"></div>
+        <p class="blocks-empty" id="blocksEmpty" hidden>Your phrase is empty. Add a block below.</p>
+        <div class="add-area">
+          <p class="add-caption" id="addCaption">Add a block</p>
+          <div class="add-row" role="group" aria-labelledby="addCaption">
+            <button class="add-btn" type="button" data-quick="free-text"><span class="glyph" data-glyph="text"></span><span><b>Text</b><small>Your words</small></span></button>
+            <button class="add-btn" type="button" data-quick="wildcard"><span class="glyph">***</span><span><b>Wildcard</b><small>Fill in later</small></span></button>
+            <button class="add-btn" type="button" data-quick="smartlink" aria-haspopup="dialog"><span class="glyph">@</span><span><b>SmartLink</b><small>Pull from Epic</small></span></button>
+            <button class="add-btn" type="button" data-quick="custom-smartlist"><span class="glyph" data-glyph="list"></span><span><b>SmartList</b><small>Plan choices</small></span></button>
+          </div>
+        </div>
+        <p class="boundary-inline">Works offline · Not connected to Epic · Don’t enter patient information</p>
+      </div>
+    </section>
+
+    <aside class="preview-pane" id="previewPane" aria-label="Preview and copy">
+      <div class="pv-head">
+        <div class="pv-eyebrow"><span>Preview</span><span>Exactly what copies</span></div>
+        <div class="pv-name" id="pvName">.YOURPHRASE</div>
+      </div>
+      <div class="pv-scroll" id="pvScroll">
+        <div class="pv-body" id="pvBody" aria-label="Phrase body preview"></div>
+        <div class="pv-legend" id="pvLegend" hidden></div>
+      </div>
+      <div class="pv-foot">
+        <details class="checks" id="checks">
+          <summary id="checksSummary"></summary>
+          <div class="checks-body" id="checksBody"></div>
+        </details>
+        <button class="btn-primary" id="copyBodyBtn" type="button" data-copy="body"></button>
+        <div class="copy-links">
+          <button class="btn-link" type="button" data-copy="name">Copy name</button>
+          <button class="btn-link" type="button" data-copy="notes" title="SmartList plans and items to set up or check in Epic">Copy setup notes</button>
+          <span class="copy-hint">Copy for Epic copies the body only.</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <nav class="mobile-bar" aria-label="View and copy">
+    <div class="viewtabs" role="tablist" aria-label="View">
+      <button type="button" role="tab" id="tabBuild" aria-selected="true" aria-controls="editorPane" data-view="build">Build</button>
+      <button type="button" role="tab" id="tabPreview" aria-selected="false" aria-controls="previewPane" data-view="preview">Preview</button>
+    </div>
+    <button class="btn-primary" id="copyBodyBtnM" type="button" data-copy="body"></button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="picker" id="picker" role="dialog" aria-labelledby="pickerTitle" hidden>
+  <div class="picker-head">
+    <span class="picker-title" id="pickerTitle">Add a block</span>
+    <span class="picker-where" id="pickerWhere"></span>
+    <button class="icon-btn" type="button" id="pickerClose" aria-label="Close"></button>
+  </div>
+  <div class="picker-search">
+    <span id="pickerSearchIcon"></span>
+    <input id="pickerInput" type="search" autocomplete="off" spellcheck="false" placeholder="Search — try date, name, meds" role="combobox" aria-expanded="true" aria-controls="pickerList" aria-autocomplete="list" aria-label="Search blocks">
+  </div>
+  <div class="scopes" id="pickerScopes" role="group" aria-label="Show"></div>
+  <div class="plist" id="pickerList" role="listbox" aria-label="Blocks"></div>
+  <div class="picker-foot"><kbd>↑</kbd> <kbd>↓</kbd> choose · <kbd>Enter</kbd> add · <kbd>Esc</kbd> close</div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+<dialog id="helpDialog" aria-labelledby="helpTitle">
+  <div class="dlg-head"><h2 id="helpTitle">How this works</h2><button class="icon-btn" type="button" data-close aria-label="Close help"></button></div>
+  <div class="dlg-body">
+    <h3>Name it → Build it → Copy it</h3>
+    <ol>
+      <li><b>Name it.</b> Letters, numbers and underscores. It becomes <code>.YOURNAME</code>.</li>
+      <li><b>Build it.</b> Add blocks in order. Each block starts on a new line in the finished phrase. To put a SmartLink inside a sentence, type <kbd>@</kbd> in the text, or join a block onto the line above.</li>
+      <li><b>Copy it.</b> <b>Copy for Epic</b> copies the phrase body. Paste it into SmartPhrase Manager.</li>
+    </ol>
+    <h3>The four blocks</h3>
+    <dl>
+      <dt>Text</dt><dd>Your own words, copied exactly as typed.</dd>
+      <dt>Wildcard</dt><dd><code>***</code> — a blank the person documenting fills in later.</dd>
+      <dt>SmartLink</dt><dd>A token such as <code>@TD@</code> that pulls information from Epic. Availability varies by organization.</dd>
+      <dt>SmartList</dt><dd>A <em>plan</em> for a list of choices. This tool cannot create a working SmartList — it copies a placeholder and setup notes so you can build it in Epic.</dd>
+    </dl>
+    <h3>What the labels mean</h3>
+    <dl>
+      <dt>Ready to copy</dt><dd>Nothing left to fix here. It does not mean Epic has checked it.</dd>
+      <dt>Check in Epic</dt><dd>Confirm the item works the way you expect in your Epic setup.</dd>
+      <dt>Set up in Epic</dt><dd>Something you still need to create or insert in Epic, such as a SmartList from a plan.</dd>
+    </dl>
+    <h3>Finish in Epic</h3>
+    <ol>
+      <li>Open SmartPhrase Manager and create the phrase with the name you copied.</li>
+      <li>Paste the body.</li>
+      <li>Replace each <code>[[INSERT …]]</code> placeholder using Epic’s insert tools. <b>Copy setup notes</b> lists them.</li>
+      <li>Test the phrase in your approved training or test area before clinical use.</li>
+    </ol>
+    <h3>Keyboard</h3>
+    <dl>
+      <dt><kbd>@</kbd> in text</dt><dd>Suggests SmartLinks, SmartLists and wildcards at the cursor; keep typing to filter. <kbd>Enter</kbd> or <kbd>Tab</kbd> inserts, <kbd>Esc</kbd> dismisses. Your typing is never redirected. On touch, the @ button on the block opens a searchable list.</dd>
+      <dt><kbd>Backspace</kbd> after a token</dt><dd>Selects the whole token. Press again to remove it. Undo brings it back.</dd>
+      <dt><kbd>Enter</kbd> in text</dt><dd>New line. Press twice for a blank line between paragraphs. Faint ↵ and ¶ marks show breaks while you edit; they are never copied.</dd>
+      <dt><kbd>Alt</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></dt><dd>Move the selected block.</dd>
+      <dt><kbd>Esc</kbd></dt><dd>From a field, select its block. Again to deselect.</dd>
+      <dt><kbd>Delete</kbd></dt><dd>Remove a selected block (when the block itself is focused). Undo brings it back.</dd>
+      <dt><kbd>Ctrl</kbd> + <kbd>Z</kbd></dt><dd>Undo block changes when you are not in a text field.</dd>
+    </dl>
+    <h3>Your data</h3>
+    <p>Your draft is saved only in this browser. Nothing is uploaded. This tool is not connected to Epic, does not publish or approve clinical content, and has not been clinically validated. Do not enter patient information.</p>
+    <h3>Further reading</h3>
+    <ul>
+      <li><a href="https://epicsupport.sites.uiowa.edu/epic-resources/smarttools" target="_blank" rel="noreferrer">UI Health Care — Epic SmartTools overview</a></li>
+      <li><a href="https://www.ohsu.edu/sites/default/files/2019-08/SmartTools%20Quick%20Guide%2001-14-18.pdf" target="_blank" rel="noreferrer">OHSU — SmartTools quick guide (PDF)</a></li>
+    </ul>
+    <p style="margin-top:20px;font-size:13.5px;color:var(--muted)">Independent project by <a href="https://ppeck.me" target="_blank" rel="noreferrer">Paul Peck</a>. Not made, approved or supported by Epic Systems Corporation. Epic, SmartPhrase, SmartLink and SmartList are used only to describe compatibility.</p>
+  </div>
+</dialog>
+
+<dialog id="copyDialog" aria-labelledby="copyDlgTitle">
+  <div class="dlg-head"><h2 id="copyDlgTitle">Copy it yourself</h2><button class="icon-btn" type="button" data-close aria-label="Close"></button></div>
+  <div class="dlg-body">
+    <p>Your browser didn’t allow automatic copying. The text below is selected — press <kbd>Ctrl</kbd> + <kbd>C</kbd> (<kbd>⌘</kbd> + <kbd>C</kbd> on Mac).</p>
+    <textarea class="fallback-area" id="fallbackText" readonly aria-label="Text to copy"></textarea>
+  </div>
+</dialog>
+
+<dialog id="libraryDialog" aria-labelledby="libTitle">
+  <div class="dlg-head"><h2 id="libTitle">Your library</h2><button class="icon-btn" type="button" data-close aria-label="Close"></button></div>
+  <div class="dlg-body">
+    <p class="lib-status" id="libStatus"></p>
+    <div class="lib-filters">
+      <input class="input" id="libQuery" type="search" placeholder="Search name, ID or text" aria-label="Search your library">
+      <select class="select" id="libCollection" aria-label="Collection"></select>
+    </div>
+    <p class="lib-status" id="libSummary" aria-live="polite"></p>
+    <div id="libResults"></div>
+  </div>
+</dialog>
+
+<input type="file" id="draftFile" accept="application/json,.json" hidden>
+<input type="file" id="bankFile" accept="application/json,.json" hidden>
+<noscript><p style="padding:24px">SmartPhrase Builder needs JavaScript. It runs entirely in this browser and sends nothing anywhere.</p></noscript>
+
+<!-- @scripts -->
+</body>
+</html>

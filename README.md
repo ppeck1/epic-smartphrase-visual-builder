@@ -1,53 +1,135 @@
-# Epic SmartPhrase Visual Builder
+# SmartPhrase Builder
 
-Build a SmartPhrase one block at a time. Add text, SmartLinks, SmartLists, or wildcards. Put the blocks in order. Then copy the finished draft into Epic.
+Build an Epic SmartPhrase one block at a time. The app works offline, keeps work in the browser, and produces plain text to paste into Epic.
 
-The app is one file: `index.html`. It has no setup, no server, and no outside packages. It works offline in a modern browser.
+![SmartPhrase Builder on a desktop](docs/screenshots/desktop-builder.png)
 
-## Try it
+## Start in one minute
 
-1. Open `index.html`.
-2. Name your SmartPhrase.
-3. Add and arrange blocks.
-4. Copy the name and body.
-5. Test the draft in your approved Epic training or test area.
+1. Download or clone this project.
+2. Open `index.html` in a modern browser.
+3. Name the phrase.
+4. Add text, SmartLinks, wildcards, or a SmartList plan.
+5. Select **Copy for Epic**.
+6. Paste into SmartPhrase Manager and test it in an approved Epic training or test area.
 
-Your draft is saved in this browser. You can also save it as a JSON file and open it later.
+There is no install, account, server, analytics, or outside package.
 
-## What works today
+## For clinicians
 
-- Build with text, wildcards, SmartLinks, and SmartList plans.
-- Search the built-in block list.
-- Move, copy, or remove blocks.
-- See the finished name and body as you work.
-- Undo, redo, save, and open drafts.
-- Add an optional local reference bank.
+### What it does
 
-## Make it better
+- Shows the phrase as you build it.
+- Lets you type `@` inside a sentence to find a SmartLink.
+- Marks SmartLinks and SmartLists that need to be checked in Epic.
+- Saves the draft in this browser.
+- Copies plain text for Epic.
 
-The current build is useful, but it asks users to read too much. The next version will make the main job feel like three clear steps: **name it, build it, copy it**.
+### What it does not do
 
-See the [improvement plan](IMPROVEMENT_PLAN.md) for the full review, new words, design direction, and build order.
+- It does not connect to Epic.
+- It does not create, publish, approve, or clinically validate a SmartPhrase.
+- It cannot prove that a SmartLink exists in your organization.
+- It must not contain patient information.
 
-## Optional reference bank
+### Simple example
 
-You can load a local JSON file with your own SmartPhrase and SmartObject list. The file stays in your browser. The app does not upload it.
+Build this:
 
-The app accepts `smartPhraseBank`, `smartObjectBank`, or both. This is an advanced feature and is not needed for normal use.
+```text
+Name: FOLLOWUP
+
+Hello @NAME@,
+Please return in *** weeks.
+```
+
+The copied result is:
+
+```text
+Hello @NAME@,
+Please return in *** weeks.
+```
+
+The builder reminds you to check `@NAME@` in Epic and fill in `***` while documenting.
+
+See the ready-to-open [follow-up example](examples/follow-up-draft.json) and [SmartList-plan example](examples/smartlist-plan-draft.json).
+
+## For recruiters and product teams
+
+This project demonstrates product simplification in a safety-sensitive workflow:
+
+- A dense three-column tool became one document-centered task: **name it, build it, copy it**.
+- Progressive disclosure keeps file tools and reference libraries out of the main path.
+- Blue identifies the one main action; amber means check in Epic; red means unfinished; green confirms a completed action.
+- The same interaction works with pointer, keyboard, or touch.
+- The release stays portable as one offline HTML file while the editable source remains modular.
+- Safety language is visible without dominating the screen.
+
+![SmartPhrase Builder on a phone](docs/screenshots/mobile-builder.png)
+
+The design and engineering decisions are recorded in the [improvement plan](IMPROVEMENT_PLAN.md) and [current variable matrix](docs/VARIABLE_MATRIX.md).
+
+## For technical readers
+
+### Architecture
+
+`index.html` is a generated release artifact. Do not maintain it by hand.
+
+```text
+src/index.template.html       page structure and dialogs
+src/styles/                  design tokens, layout, components, responsive rules
+src/js/core.js               shared output rules and import validation
+src/js/app/                  focused browser modules, ordered by filename
+scripts/build.mjs            deterministic one-file build
+test/                        Node tests with no outside test framework
+examples/                    safe generic draft files
+index.html                   generated offline release
+```
+
+The browser and tests use the same shared core. Application modules are kept below 260 lines by a test guard. Search for `* Future work:` to find human-readable handoff notes in the source.
+
+### Commands
+
+Node 18 or newer is enough. No dependency install is required.
+
+```bash
+npm run build
+npm test
+npm run check
+```
+
+`npm run check` rebuilds the release, runs all tests, and proves that `index.html` matches the modular source.
+
+### Compatibility and storage
+
+- Draft schema: `epic-smartobject-builder`
+- Schema version: `1`
+- Browser key: `epic-smartobject-builder.v1`
+- Current version regenerates safe internal block IDs when a saved draft is loaded.
+- Draft files are capped at 2 MB and 500 blocks.
+- Reference libraries are capped at 5 MB and 10,000 entries.
+- The app contains no runtime network request code.
+
+See the [variable matrix](docs/VARIABLE_MATRIX.md) for colors, type, breakpoints, schema fields, limits, and status language.
+
+## Optional local library
+
+Use **More → Add your library** to load a local JSON reference file. It can contain `smartPhraseBank`, `smartObjectBank`, or both. The file stays in the browser and is not uploaded.
+
+This is an advanced feature. The normal build-and-copy flow does not need it.
 
 ## Safety
 
-- This tool does not connect to Epic.
-- It does not publish or approve clinical content.
-- SmartLinks and SmartLists can work differently at each organization.
-- Do not enter patient information.
-- Always test every draft in an approved Epic training or test area before clinical use.
+- Never enter patient information.
+- Confirm every SmartLink and SmartList in your own Epic setup.
+- Test every phrase in an approved training or test area before clinical use.
+- This independent project is not made, approved, or supported by Epic Systems Corporation.
 
-This is an independent open-source project. It is not made, approved, or supported by Epic Systems Corporation. Epic, SmartPhrase, SmartLink, SmartList, and SmartObject are names used to describe compatibility with Epic software.
+Epic, SmartPhrase, SmartLink, SmartList, and SmartObject are names used only to describe compatibility with Epic software.
 
 ## Project history
 
-This project was distilled from a specialty workbook prototype. Private clinical data banks and patient data are not included. The public project contains only the generic builder.
+This public project was distilled from a specialty-workbook prototype. Private source banks and patient data are not included.
 
 Built by [Paul Peck](https://ppeck.me).
 

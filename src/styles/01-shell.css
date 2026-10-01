@@ -1,0 +1,21 @@
+/* ---------- shell ---------- */
+.app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+.topbar { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 12px 0 20px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; flex: none; }
+.mark { position: relative; width: 26px; height: 26px; border-radius: 7px; background: var(--ink); }
+.mark::after { content: ""; position: absolute; left: 6px; bottom: 6px; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.brand-name { font-family: var(--serif); font-size: 18px; font-weight: 600; letter-spacing: -.005em; white-space: nowrap; }
+.boundary { margin: 0 auto; padding: 0 12px; color: var(--muted); font-size: 13.5px; text-align: center; }
+.boundary b { font-weight: 600; color: var(--ink-2); }
+.top-actions { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.save-state { display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; color: var(--muted); font-size: 13.5px; white-space: nowrap; transition: color var(--t); }
+.save-state[data-tone="warn"] { color: var(--amber); }
+.save-state[data-tone="flash"] { color: var(--green); }
+.icon-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--r); background: transparent; color: var(--ink-2); }
+.icon-btn:hover:not(:disabled) { background: var(--hover); color: var(--ink); }
+.icon-btn:disabled { color: #c3beb4; }
+.btn-quiet { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 0; border-radius: var(--r); background: transparent; color: var(--ink-2); font-size: 15px; font-weight: 500; }
+.btn-quiet:hover, .btn-quiet[aria-expanded="true"] { background: var(--hover); color: var(--ink); }
+.divider-v { width: 1px; height: 22px; margin: 0 6px; background: var(--line); }
+
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) clamp(340px, 34vw, 460px); min-height: 0; }

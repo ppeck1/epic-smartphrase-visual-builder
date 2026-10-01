@@ -1,0 +1,17 @@
+{
+  "name": "epic-smartphrase-visual-builder",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Offline visual builder for drafting Epic SmartPhrases one block at a time.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:check": "node scripts/build.mjs --check",
+    "preview": "node scripts/dev-server.mjs",
+    "test": "node --test",
+    "check": "npm run build && npm test && npm run build:check"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
