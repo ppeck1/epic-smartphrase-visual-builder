@@ -4,6 +4,14 @@ Build an Epic SmartPhrase one block at a time. The app works offline, keeps work
 
 ![SmartPhrase Builder on a desktop](docs/screenshots/desktop-builder.png)
 
+## Project status
+
+**Functional offline prototype.** The builder supports the complete local drafting flow described below. It is not connected to Epic, has not been clinically validated, and is not represented as a production deployment. Organization-specific phrases, reference banks, and patient data are intentionally excluded from this public repository.
+
+## Problem and intended user
+
+SmartPhrase authors often have to compose text, wildcards, SmartLinks, and SmartLists while keeping local naming and validation rules in mind. This prototype gives clinicians and documentation-workflow builders a visual place to assemble and review a draft before moving it into an approved Epic training or test environment.
+
 ## Start in one minute
 
 1. Download or clone this project.
@@ -69,6 +77,10 @@ This project demonstrates product simplification in a safety-sensitive workflow:
 
 The design and engineering decisions are recorded in the [improvement plan](IMPROVEMENT_PLAN.md) and [current variable matrix](docs/VARIABLE_MATRIX.md).
 
+### My contribution
+
+I defined the product boundary, interaction model, drafting workflow, safety language, local data model, and implementation. The project translates experience with Epic documentation workflows into a public, generic prototype without exposing organizational content or patient information.
+
 ## For technical readers
 
 ### Architecture
@@ -126,6 +138,13 @@ This is an advanced feature. The normal build-and-copy flow does not need it.
 - This independent project is not made, approved, or supported by Epic Systems Corporation.
 
 Epic, SmartPhrase, SmartLink, SmartList, and SmartObject are names used only to describe compatibility with Epic software.
+
+## Known limitations
+
+- Epic configuration and available SmartTools vary by organization.
+- The public project does not include an organization-specific catalog or clinical content.
+- Draft checks cannot establish that a phrase is clinically appropriate or configured correctly in Epic.
+- Automated tests cover the shared output rules, import boundaries, generated release, and modularity. Cross-browser, screen-reader, and clinical-workflow review still require people and approved test environments.
 
 ## Project history
 
