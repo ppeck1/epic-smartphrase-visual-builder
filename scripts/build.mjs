@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import {fileURLToPath} from "node:url";
 
-const root = path.resolve(import.meta.dirname, "..");
+// Convert the module URL explicitly to keep the documented Node 18 floor.
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(moduleDirectory, "..");
 const templatePath = path.join(root, "src", "index.template.html");
 const stylesDir = path.join(root, "src", "styles");
 const corePath = path.join(root, "src", "js", "core.js");

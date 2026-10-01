@@ -1,8 +1,11 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import {fileURLToPath} from "node:url";
 
-const root = path.resolve(import.meta.dirname, "..");
+// Convert the module URL explicitly to keep the documented Node 18 floor.
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(moduleDirectory, "..");
 const screenshots = path.join(root, "docs", "screenshots");
 const portArg = process.argv.find((value) => /^\d+$/.test(value));
 const port = Number(portArg || 9139);

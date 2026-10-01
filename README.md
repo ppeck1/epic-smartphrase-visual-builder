@@ -93,7 +93,8 @@ src/styles/                  design tokens, layout, components, responsive rules
 src/js/core.js               shared output rules and import validation
 src/js/app/                  focused browser modules, ordered by filename
 scripts/build.mjs            deterministic one-file build
-test/                        Node tests with no outside test framework
+test/                        unit tests and one focused browser flow
+.github/workflows/ci.yml     Node 18 build and Chromium regression check
 examples/                    safe generic draft files
 index.html                   generated offline release
 ```
@@ -102,15 +103,17 @@ The browser and tests use the same shared core. Application modules are kept bel
 
 ### Commands
 
-Node 18 or newer is enough. No dependency install is required.
+Node 18 or newer is enough. Opening `index.html` still needs no install. Contributors install the pinned test tools once:
 
 ```bash
+npm ci
+npx playwright install chromium
 npm run build
 npm test
 npm run check
 ```
 
-`npm run check` rebuilds the release, runs all tests, and proves that `index.html` matches the modular source.
+`npm run check` rebuilds the release, runs the unit tests plus the Chromium interaction test, and proves that `index.html` matches the modular source. The browser test protects the inline picker, app undo, and clipboard flow. CI runs the same command on the stated Node 18 minimum.
 
 ### Compatibility and storage
 
@@ -144,7 +147,7 @@ Epic, SmartPhrase, SmartLink, SmartList, and SmartObject are names used only to 
 - Epic configuration and available SmartTools vary by organization.
 - The public project does not include an organization-specific catalog or clinical content.
 - Draft checks cannot establish that a phrase is clinically appropriate or configured correctly in Epic.
-- Automated tests cover the shared output rules, import boundaries, generated release, and modularity. Cross-browser, screen-reader, and clinical-workflow review still require people and approved test environments.
+- Automated tests cover the shared output rules, import boundaries, generated release, modularity, and the main picker → undo → copy flow in Chromium. Other browsers, screen readers, and clinical workflows still require people and approved test environments.
 
 ## Project history
 

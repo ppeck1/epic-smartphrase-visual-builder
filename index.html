@@ -141,7 +141,8 @@ code, .mono { font-family: var(--mono); }
 .ink .doc-text { position: relative; }
 .ib { border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .ib-link { background: #eeebe4; box-shadow: 0 0 0 2px #eeebe4, 0 0 0 3px #d6d0c5; }
-.ib-wild { outline: 1px dashed #a39d91; outline-offset: 2px; }
+/* Keep the outline on the token edge so the real following space also reads as a visual gap. */
+.ib-wild { outline: 1px dashed #a39d91; outline-offset: 0; }
 .ib-plan { background: var(--amber-wash); box-shadow: 0 0 0 2px var(--amber-wash), 0 0 0 3px var(--amber-line); }
 .ib-br { position: relative; }
 .ib-br::after { content: "\21B5"; position: absolute; left: 4px; top: .2em; font: 12px/1 var(--sans); color: #aca69a; opacity: 0; transition: opacity var(--t); }

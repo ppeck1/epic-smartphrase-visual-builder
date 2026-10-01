@@ -39,3 +39,14 @@ test("every source module carries a human handoff note", () => {
     }
   }
 });
+
+test("build tools honor the stated Node 18 floor", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+  assert.equal(manifest.engines.node, ">=18");
+
+  for (const name of ["build.mjs", "dev-server.mjs"]) {
+    const source = fs.readFileSync(path.join(root, "scripts", name), "utf8");
+    assert.doesNotMatch(source, /import\.meta\.dirname/, `${name} uses a Node 20.11 API`);
+    assert.match(source, /fileURLToPath\(import\.meta\.url\)/, `${name} needs Node 18-compatible module paths`);
+  }
+});
