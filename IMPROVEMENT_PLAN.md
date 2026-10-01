@@ -204,7 +204,7 @@ The implemented core pairs pass the 4.5:1 AA target: blue on white is 6.08:1, gr
 
 ## Build progress
 
-Phase 1 is in progress. The first build pass includes:
+The document-centered redesign is implemented. Phase 1 is complete, and the build includes the most useful Phase 2 speed features:
 
 - A compact header and a shorter safety note.
 - The name field and phrase builder first on phones.
@@ -218,6 +218,13 @@ Phase 1 is in progress. The first build pass includes:
 - Build notes moved into **Details**.
 - Friendlier first-use guidance instead of immediate errors.
 - Larger type and touch targets.
+- Inline `@` SmartLink insertion.
+- Linked editor and preview blocks.
+- Collapsible long blocks.
+- A searchable picker and mobile bottom sheet.
+- A modular source tree that builds the one-file release.
+- Shared output and import rules covered by repeatable tests.
+- Bounded draft and reference-library imports.
 
 ## Access for everyone
 

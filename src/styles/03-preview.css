@@ -1,0 +1,54 @@
+/* ---------- preview ---------- */
+.preview-pane { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; background: var(--paper); border-left: 1px solid var(--line); }
+.pv-head { padding: 18px 24px 14px; border-bottom: 1px solid var(--line); }
+.pv-eyebrow { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 13.5px; font-weight: 500; }
+.pv-name { margin-top: 2px; font: 600 18px/1.35 var(--mono); word-break: break-all; }
+.pv-name.is-placeholder { color: var(--faint); }
+.pv-scroll { overflow: auto; padding: 20px 24px 24px; }
+.pv-body { margin: 0; font: 16.5px/1.75 var(--serif); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+.pv-empty { margin: 0; color: var(--muted); font: italic 16px/1.6 var(--serif); }
+.seg { border-radius: 3px; cursor: pointer; transition: background var(--t), box-shadow var(--t); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.seg:hover, .seg.is-hover { background: var(--hover); box-shadow: 0 0 0 2px var(--hover); }
+.seg.is-linked { background: var(--accent-link); box-shadow: 0 0 0 2px var(--accent-link); }
+.seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pv-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.pv-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.pv-legend .tok { font-size: 12px; }
+.pv-legend p { flex-basis: 100%; margin: 0; }
+
+.pv-foot { padding: 12px 24px 18px; border-top: 1px solid var(--line); background: var(--paper); }
+.checks { margin: 0 -8px 10px; border-radius: var(--r); }
+.checks > summary { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; row-gap: 0; gap: 8px; min-height: 44px; padding: 6px 8px; border-radius: var(--r); list-style: none; cursor: pointer; font-size: 15px; }
+.checks > summary::-webkit-details-marker { display: none; }
+.checks > summary:hover { background: var(--hover); }
+.checks .chev { margin-left: auto; color: var(--muted); transition: transform var(--t); }
+.checks[open] .chev { transform: rotate(180deg); }
+.sum-main { font-weight: 600; white-space: nowrap; }
+.sum-side { flex: 1 1 auto; }
+.sum-side { color: var(--amber); font-size: 14px; font-weight: 500; }
+.tone-draft .sum-main, .tone-draft .sum-icon { color: var(--amber); }
+.tone-done .sum-icon, .tone-done .sum-main { color: var(--green); }
+.tone-neutral .sum-icon { color: var(--muted); }
+.tone-ready .sum-icon { color: var(--ink); }
+.checks-body { max-height: 34vh; overflow: auto; padding: 4px 8px 6px; }
+.cgroup { margin: 8px 0 0; }
+.cgroup h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; font-size: 13.5px; font-weight: 600; }
+.cgroup.error h3 { color: var(--red); }
+.cgroup.setup h3, .cgroup.check h3 { color: var(--amber); }
+.cgroup.later h3, .cgroup.note h3 { color: var(--ink-2); }
+.cgroup p.hint { margin: 0 0 4px; color: var(--muted); font-size: 13px; }
+.citem { display: flex; gap: 8px; width: 100%; padding: 6px 6px; border: 0; border-radius: 6px; background: transparent; text-align: left; font-size: 14px; line-height: 1.4; color: var(--ink-2); }
+.citem:hover { background: var(--hover); color: var(--ink); }
+.citem .n { flex: none; min-width: 22px; color: var(--muted); font: 500 12.5px/1.6 var(--mono); }
+.citem code { font-size: 13px; }
+.checks-foot { margin: 10px 0 2px; color: var(--muted); font-size: 13px; }
+
+.btn-primary { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 50px; padding: 0 18px; border: 0; border-radius: var(--r); background: var(--accent); color: #fff; font-size: 16.5px; font-weight: 600; letter-spacing: .005em; transition: background var(--t); }
+.btn-primary:hover { background: var(--accent-strong); }
+.btn-primary.is-done { background: var(--green); }
+.btn-primary.is-draft { background: var(--amber); }
+.btn-primary.is-draft:hover { background: var(--amber-ink); }
+.copy-links { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin-top: 6px; }
+.btn-link { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: var(--accent-strong); font-size: 14.5px; font-weight: 500; }
+.btn-link:hover { background: var(--accent-wash); }
+.copy-hint { margin-left: auto; color: var(--muted); font-size: 13px; }
