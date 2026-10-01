@@ -14,15 +14,19 @@ function orderedFiles(directory, extension) {
     .sort((a, b) => a.localeCompare(b, "en"));
 }
 
+function readNormalized(filename) {
+  return fs.readFileSync(filename, "utf8").replace(/\r\n/g, "\n");
+}
+
 function readJoined(directory, extension) {
   return orderedFiles(directory, extension)
-    .map((name) => `/* Source: ${path.relative(root, path.join(directory, name)).replaceAll("\\", "/")} */\n${fs.readFileSync(path.join(directory, name), "utf8").trim()}`)
+    .map((name) => `/* Source: ${path.relative(root, path.join(directory, name)).replaceAll("\\", "/")} */\n${readNormalized(path.join(directory, name)).trim()}`)
     .join("\n\n");
 }
 
-const template = fs.readFileSync(templatePath, "utf8");
+const template = readNormalized(templatePath);
 const styles = readJoined(stylesDir, ".css");
-const core = fs.readFileSync(corePath, "utf8").trim();
+const core = readNormalized(corePath).trim();
 const application = readJoined(appDir, ".js");
 
 if (!template.includes("<!-- @styles -->") || !template.includes("<!-- @scripts -->")) {
